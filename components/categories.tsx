@@ -16,19 +16,11 @@ const Categories: React.FC = () => {
       {/* header */}
       <View className="px-5 flex-row justify-between items-center">
         <Text
-          style={{ fontSize: wp(4.5) }}
+          style={{ fontSize: wp(4.5),  marginBottom: wp(2)  }}
           className="font-bold text-neutral-800"
         >
           Categories
         </Text>
-        <TouchableOpacity>
-          <Text
-            style={{ fontSize: wp(3.8), color: theme.text }}
-            className="font-medium"
-          >
-            See all
-          </Text>
-        </TouchableOpacity>
       </View>
 
       {/* horizontal scroll */}

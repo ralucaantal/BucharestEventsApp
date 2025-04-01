@@ -1,36 +1,22 @@
 export const sortCategoryData = ['All', 'Popular', 'Recommended', 'More'];
 
 export const categoriesData = [
-    {
-        title: 'Ocean',
-        image: require('../assets/images/ocean.png')
-    },
-    {
-        title: 'Mountain',
-        image: require('../assets/images/mountain.png')
-    },
-    {
-        title: 'Camp',
-        image: require('../assets/images/camp.png')
-    },
-    {
-        title: 'Sunset',
-        image: require('../assets/images/sunset.png')
-    },
-    {
-        title: 'Hiking',
-        image: require('../assets/images/hiking.png')
-    },
-    {
-        title: 'Beach',
-        image: require('../assets/images/beach.png')
-    },
-    {
-        title: 'Forest',
-        image: require('../assets/images/forest.png')
-    },
-    
-]
+    { title: '🏛 Monuments', image: require('../assets/images/categories/monuments.png') },
+    { title: '🖼 Museums', image: require('../assets/images/categories/museums.png') },
+    { title: '🎉 Events', image: require('../assets/images/categories/events.png') },
+    { title: '🍴 Restaurants', image: require('../assets/images/categories/restaurants.png') },
+    { title: '🌳 Parks', image: require('../assets/images/categories/parks.png') },
+    { title: '🎭 Culture', image: require('../assets/images/categories/culture.png') },
+    { title: '🎬 Cinemas', image: require('../assets/images/categories/cinemas.png') },
+    { title: '🎶 Live Music', image: require('../assets/images/categories/liveMusic.png') },
+    { title: '☕ Cafes', image: require('../assets/images/categories/cafes.png') },
+    { title: '🍻 Bars & Pubs', image: require('../assets/images/categories/barsPubs.png') },
+    { title: '🛍 Shops & Markets', image: require('../assets/images/categories/shopsMarkets.png') },
+    { title: '🎨 Art Galleries', image: require('../assets/images/categories/artGalleries.png') },
+    { title: '📚 Libraries', image: require('../assets/images/categories/libraries.png') },
+    { title: '🧘‍♀️ Wellness', image: require('../assets/images/categories/wellness.png') },
+  ];
+  
 export const destinationData = [
     {
         title: 'Osaka Castle',

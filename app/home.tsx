@@ -36,9 +36,9 @@ const HomeScreen: React.FC = () => {
             </Text>
             <Text
               className="text-neutral-400"
-              style={{ fontSize: wp(3.8), marginTop: 2 }}
+              style={{ fontSize: wp(3), marginTop: 2 }}
             >
-              Where do you want to go today?
+              What do you want to do today in Bucharest?
             </Text>
           </View>
           <TouchableOpacity>
