@@ -17,46 +17,54 @@ export const categoriesData = [
     { title: '🧘‍♀️ Wellness', image: require('../assets/images/categories/wellness.png') },
   ];
   
-export const destinationData = [
+  export const destinationData = [
     {
-        title: 'Osaka Castle',
-        duration: '12 Days',
-        distance: '400 KM',
-        weather: '20 C',
-        price: 1200,
-        shortDescription: "Osaka Castle is a Japanese castle in Chūō-ku, Osaka, Japan. The castle is one of Japan's most famous landmarks.",
-        longDescription: "Osaka Castle is a Japanese castle in Chūō-ku, Osaka, Japan. The castle is one of Japan's most famous landmarks and it played a major role in the unification of Japan during the sixteenth century of the Azuchi-Momoyama period.",
-        image: require('../assets/images/hotel.png')
+      title: 'Palace of Parliament',
+      duration: 'Visit Time: ~1h',
+      distance: '2 KM',
+      weather: '22°C',
+      price: 0,
+      shortDescription: "The Palace of Parliament is the heaviest building in the world and a symbol of Romania’s past.",
+      longDescription: "Built during the Ceaușescu regime, the Palace of Parliament is the second largest administrative building in the world. Visitors can take guided tours and explore its grand halls, museums, and historical significance.",
+      latitude: 44.4274,
+      longitude: 26.0875,
+      image: require('../assets/images/destinations/parliament.png'),
     },
     {
-        title: 'Island Itsukushima Shrine',
-        duration: '7 Days',
-        distance: '450 KM',
-        weather: '30 C',
-        price: 3000,
-        shortDescription: "The Itsukushima shrine is one of Japan's most popular tourist attractions.",
-        longDescription: "Itsukushima Shrine is a Shinto shrine on the island of Itsukushima, best known for its 'floating' torii gate. It is in the city of Hatsukaichi in Hiroshima Prefecture in Japan, accessible from the mainland by ferry at Miyajimaguchi Station.",
-        image: require('../assets/images/island.png')
-    },
-    
-    {
-        title: 'Babusar Top',
-        duration: '5 Days',
-        distance: '299 KM',
-        weather: '14 C',
-        price: 1000,
-        shortDescription: "Babusar Top is a mountain pass in Pakistan at the north of the 150 km long in beautiful Kaghan Valley",
-        longDescription: "Babusar Pass or Babusar Top is a mountain pass in Pakistan at the north of the 150 km long Kaghan Valley, connecting it via the Thak Nala with Chilas on the Karakoram Highway. It is the highest point in Kaghan Valley that can be easily accessed by cars.",
-        image: require('../assets/images/camp.png')
+      title: 'National Museum of Art',
+      duration: 'Visit Time: ~1.5h',
+      distance: '1.5 KM',
+      weather: '22°C',
+      price: 25,
+      shortDescription: "Romania's leading art museum, located in the former Royal Palace in Revolution Square.",
+      longDescription: "The National Museum of Art of Romania holds impressive collections of medieval, modern, and contemporary Romanian art, as well as European art. Located in the heart of Bucharest.",
+      latitude: 44.4397,
+      longitude: 26.0962,
+      image: require('../assets/images/destinations/artmuseum.png'),
     },
     {
-        title: 'Todaiji Temple',
-        duration: '20 Days',
-        distance: '604 KM',
-        weather: '34 C',
-        price: 400,
-        shortDescription: "Todaiji is one of Japan's most famous and significant temples and a landmark of Nara.",
-        longDescription: "Tōdai-ji is a Buddhist temple complex that was once one of the powerful Seven Great Temples, located in the city of Nara, Japan. Though it was originally founded in the year 738 CE, Tōdai-ji was not opened until the year 752 CE.",
-        image: require('../assets/images/forest.png')
+      title: 'Herăstrău (King Michael I Park)',
+      duration: 'Stay Time: Flexible',
+      distance: '4 KM',
+      weather: '23°C',
+      price: 0,
+      shortDescription: "The largest park in Bucharest, ideal for walking, boating, and relaxation.",
+      longDescription: "Herăstrău Park surrounds Lake Herăstrău and offers beautiful walking paths, restaurants, bike rentals, and the open-air Village Museum showcasing traditional Romanian houses.",
+      latitude: 44.4745,
+      longitude: 26.0808,
+      image: require('../assets/images/destinations/herastrau.png'),
     },
-]
+    {
+      title: 'Street Delivery 2024',
+      duration: '12-14 July',
+      distance: 'Central Area',
+      weather: '28°C',
+      price: 0,
+      shortDescription: "An urban culture festival that brings creativity and community to the streets of Bucharest.",
+      longDescription: "Street Delivery transforms the streets of Bucharest into open pedestrian areas filled with live music, art, street food, architecture, workshops, and urban activism. A must-see for anyone exploring local culture.",
+      latitude: 44.4351,
+      longitude: 26.0987,
+      image: require('../assets/images/destinations/streetdelivery.png'),
+    },
+  ];
+  

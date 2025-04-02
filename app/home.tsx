@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { MagnifyingGlassIcon } from 'react-native-heroicons/outline';
-
+import { useRouter } from 'expo-router';
 import Categories from '../components/categories';
 import SortCategories from '../components/sortCategories';
 import Destinations from '../components/destinations';
@@ -19,6 +19,7 @@ import Destinations from '../components/destinations';
 const ios = Platform.OS === 'ios';
 
 const HomeScreen: React.FC = () => {
+  const router = useRouter();
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView
@@ -32,7 +33,7 @@ const HomeScreen: React.FC = () => {
               style={{ fontSize: wp(6.5), lineHeight: wp(7.5) }}
               className="font-bold text-neutral-800"
             >
-              Hello Explorer 👋
+              Hello, Explorer! 👋
             </Text>
             <Text
               className="text-neutral-400"
@@ -41,6 +42,18 @@ const HomeScreen: React.FC = () => {
               What do you want to do today in Bucharest?
             </Text>
           </View>
+          <TouchableOpacity onPress={() => router.push('/map')}>
+            <Image
+              source={require('../assets/images/map.png')}
+              style={{
+                height: wp(11),
+                width: wp(11),
+                borderRadius: wp(11) / 2,
+                borderWidth: 1,
+                borderColor: '#e5e7eb',
+              }}
+            />
+          </TouchableOpacity>
           <TouchableOpacity>
             <Image
               source={require('../assets/images/avatar.png')}
