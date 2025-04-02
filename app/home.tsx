@@ -54,16 +54,10 @@ const HomeScreen: React.FC = () => {
               }}
             />
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/login')}>
             <Image
               source={require('../assets/images/avatar.png')}
-              style={{
-                height: wp(11),
-                width: wp(11),
-                borderRadius: wp(11) / 2,
-                borderWidth: 1,
-                borderColor: '#e5e7eb',
-              }}
+              style={{ height: wp(11), width: wp(11), borderRadius: wp(11) / 2 }}
             />
           </TouchableOpacity>
         </View>
