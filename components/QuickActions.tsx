@@ -21,7 +21,7 @@ const QuickActions: React.FC = () => {
     {
       title: 'Plan Your Day ⏱️',
       image: require('../assets/images/calendar.png'),
-      // onPress: () => router.push('/calendar'),
+      onPress: () => router.push('/calendar'),
     },
     {
       title: 'Ask Your Guide 👀',
