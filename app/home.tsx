@@ -15,6 +15,7 @@ import { useRouter } from 'expo-router';
 import Categories from '../components/categories';
 import SortCategories from '../components/sortCategories';
 import Destinations from '../components/destinations';
+import QuickActions from '@/components/QuickActions';
 
 const ios = Platform.OS === 'ios';
 
@@ -42,18 +43,6 @@ const HomeScreen: React.FC = () => {
               What do you want to do today in Bucharest?
             </Text>
           </View>
-          <TouchableOpacity onPress={() => router.push('/map')}>
-            <Image
-              source={require('../assets/images/map.png')}
-              style={{
-                height: wp(11),
-                width: wp(11),
-                borderRadius: wp(11) / 2,
-                borderWidth: 1,
-                borderColor: '#e5e7eb',
-              }}
-            />
-          </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/login')}>
             <Image
               source={require('../assets/images/avatar.png')}
@@ -72,6 +61,11 @@ const HomeScreen: React.FC = () => {
               className="flex-1 text-base pl-3 text-neutral-700"
             />
           </View>
+        </View>
+
+        {/* Quick Actions */}
+        <View className="mb-4">
+          <QuickActions />
         </View>
 
         {/* Categories */}
