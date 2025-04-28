@@ -26,7 +26,7 @@ const QuickActions: React.FC = () => {
     {
       title: 'Ask Your Guide 👀',
       image: require('../assets/images/guide.png'),
-      // onPress: () => router.push('/assistant'),
+      onPress: () => router.push('/virtualGuide'),
     },
   ];
 
