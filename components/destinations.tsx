@@ -1,29 +1,27 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-} from 'react-native';
-import { destinationData } from '../constants';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, Image, ActivityIndicator, ScrollView } from 'react-native';
+import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { LinearGradient } from 'expo-linear-gradient';
 import { HeartIcon } from 'react-native-heroicons/solid';
 import { router } from 'expo-router';
+import { BASE_URL } from '../constants';
+import { sortCategoryData } from '../constants';
+import { theme } from '../theme'; 
 
-type Item = {
-  image: any;
-  title: string;
-  shortDescription: string;
-  price: number;
-  longDescription: string;
-  duration: string;
-  distance: string;
-  weather: string;
+type Place = {
+  place_id: string;
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  rating: number;
+  types: string[];
+  photo_url: string | null;
+  user_ratings_total?: number;
 };
 
 type DestinationCardProps = {
-  item: Item;
+  item: Place;
 };
 
 const DestinationCard: React.FC<DestinationCardProps> = ({ item }) => {
@@ -31,9 +29,7 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ item }) => {
 
   return (
     <TouchableOpacity
-      onPress={() =>
-        router.push({ pathname: '/destination', params: { ...item } })
-      }
+      onPress={() => router.push({ pathname: '/destination', params: { ...item } })}
       style={{
         width: wp(44),
         height: wp(65),
@@ -51,14 +47,17 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ item }) => {
       activeOpacity={0.9}
     >
       {/* Image */}
-      <Image
-        source={item.image}
-        resizeMode="cover"
-        style={{
-          width: '100%',
-          height: '100%',
-        }}
-      />
+      {item.photo_url ? (
+        <Image
+          source={{ uri: item.photo_url }}
+          resizeMode="cover"
+          style={{ width: '100%', height: '100%' }}
+        />
+      ) : (
+        <View className="flex-1 bg-neutral-300 justify-center items-center">
+          <Text>No image</Text>
+        </View>
+      )}
 
       {/* Gradient overlay */}
       <LinearGradient
@@ -81,18 +80,15 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ item }) => {
 
       {/* Text overlay */}
       <View className="absolute bottom-4 left-4 right-4">
-        <Text
-          className="text-white font-bold"
-          style={{ fontSize: wp(4.2), marginBottom: 2 }}
-        >
-          {item.title}
+        <Text className="text-white font-bold" style={{ fontSize: wp(4.2), marginBottom: 2 }}>
+          {item.name}
         </Text>
         <Text
           className="text-neutral-200"
           style={{ fontSize: wp(3.1), lineHeight: wp(4) }}
           numberOfLines={2}
         >
-          {item.shortDescription}
+          {item.address}
         </Text>
       </View>
     </TouchableOpacity>
@@ -100,11 +96,105 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ item }) => {
 };
 
 const Destinations: React.FC = () => {
+  const [allDestinations, setAllDestinations] = useState<Place[]>([]);
+  const [destinations, setDestinations] = useState<Place[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState('All');
+
+  useEffect(() => {
+    const fetchPlaces = async () => {
+      try {
+        const res = await fetch(`${BASE_URL}/places`);
+        const data = await res.json();
+        setAllDestinations(data);
+        setDestinations(data);
+      } catch (error) {
+        console.error('Failed to fetch places', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlaces();
+  }, []);
+
+  useEffect(() => {
+    if (activeCategory === 'All') {
+      setDestinations(allDestinations);
+    } else if (activeCategory === 'Popular') {
+      const popular = [...allDestinations]
+        .filter(p => (p.user_ratings_total || 0) > 0)
+        .sort((a, b) => (b.user_ratings_total || 0) - (a.user_ratings_total || 0))
+        .slice(0, 20);
+      setDestinations(popular);
+    } else if (activeCategory === 'Recommended') {
+      const recommended = [...allDestinations]
+        .filter(p => (p.user_ratings_total || 0) > 100 && (p.rating || 0) >= 4)
+        .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+        .slice(0, 20);
+      setDestinations(recommended);
+    } else {
+      setDestinations([]);
+    }
+  }, [activeCategory, allDestinations]);
+
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" color="#3b82f6" />
+      </View>
+    );
+  }
+
   return (
-    <View className="px-5 flex-row flex-wrap justify-between">
-      {destinationData.map((item, index) => (
-        <DestinationCard item={item} key={index} />
-      ))}
+    <View>
+      {/* Sortare categorii */}
+      <View className="px-5 mb-4">
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingVertical: 8 }}
+        >
+          {sortCategoryData.map((cat, index) => {
+            const isActive = cat === activeCategory;
+            return (
+              <TouchableOpacity
+                key={index}
+                onPress={() => setActiveCategory(cat)}
+                style={{
+                  paddingVertical: wp(2),
+                  paddingHorizontal: wp(5),
+                  marginRight: wp(3),
+                  backgroundColor: isActive ? 'white' : '#f3f4f6',
+                  borderRadius: wp(5),
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: isActive ? 0.1 : 0,
+                  shadowRadius: isActive ? 3 : 0,
+                  elevation: isActive ? 2 : 0,
+                }}
+              >
+                <Text
+                  className="font-medium"
+                  style={{
+                    fontSize: wp(3.8),
+                    color: isActive ? theme.text : 'gray',
+                  }}
+                >
+                  {cat}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
+
+      {/* Lista destinatii */}
+      <View className="px-5 flex-row flex-wrap justify-between">
+        {destinations.map((item) => (
+          <DestinationCard item={item} key={item.place_id} />
+        ))}
+      </View>
     </View>
   );
 };

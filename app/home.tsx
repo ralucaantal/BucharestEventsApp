@@ -13,7 +13,6 @@ import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { MagnifyingGlassIcon } from 'react-native-heroicons/outline';
 import { useRouter } from 'expo-router';
 import Categories from '../components/categories';
-import SortCategories from '../components/sortCategories';
 import Destinations from '../components/destinations';
 import QuickActions from '@/components/QuickActions';
 
@@ -71,11 +70,6 @@ const HomeScreen: React.FC = () => {
         {/* Categories */}
         <View className="mb-4">
           <Categories />
-        </View>
-
-        {/* Sort Options */}
-        <View className="mb-4">
-          <SortCategories />
         </View>
 
         {/* Featured Destinations */}

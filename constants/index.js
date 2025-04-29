@@ -1,14 +1,16 @@
-export const sortCategoryData = ['All', 'Popular', 'Recommended', 'More'];
+export const sortCategoryData = ['All', 'Popular', 'Recommended'];
+
+export const BASE_URL = 'http://172.20.10.5:3000';
 
 export const categoriesData = [
     { title: '🏛 Monuments', image: require('../assets/images/categories/monuments.png') },
     { title: '🖼 Museums', image: require('../assets/images/categories/museums.png') },
-    { title: '🎉 Events', image: require('../assets/images/categories/events.png') },
+    // { title: '🎉 Events', image: require('../assets/images/categories/events.png') },
     { title: '🍴 Restaurants', image: require('../assets/images/categories/restaurants.png') },
     { title: '🌳 Parks', image: require('../assets/images/categories/parks.png') },
     { title: '🎭 Culture', image: require('../assets/images/categories/culture.png') },
     { title: '🎬 Cinemas', image: require('../assets/images/categories/cinemas.png') },
-    { title: '🎶 Live Music', image: require('../assets/images/categories/liveMusic.png') },
+    // { title: '🎶 Live Music', image: require('../assets/images/categories/liveMusic.png') },
     { title: '☕ Cafes', image: require('../assets/images/categories/cafes.png') },
     { title: '🍻 Bars & Pubs', image: require('../assets/images/categories/barsPubs.png') },
     { title: '🛍 Shops & Markets', image: require('../assets/images/categories/shopsMarkets.png') },
