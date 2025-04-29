@@ -1,6 +1,7 @@
 import fetch from 'node-fetch';
+import 'dotenv/config';
 
-const API_KEY = 'AIzaSyBSp2M6atuL8vEtLZJ4DLN5yW5O4fLV2aE';
+const API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 const BACKEND_URL = 'http://localhost:3000/import-places';
 const location = '44.4268,26.1025'; // București
 const radius = 5000;
