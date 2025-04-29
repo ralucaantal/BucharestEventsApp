@@ -9,8 +9,16 @@ import {
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { theme } from '../theme';
 import { categoriesData } from '../constants';
+import { useRouter } from 'expo-router';
 
 const Categories: React.FC = () => {
+  const router = useRouter();
+
+  const handleCategoryPress = (categoryTitle: string) => {
+    // Trimitem categoria către pagina de locuri
+    router.push(`/categoryPlaces?category=${encodeURIComponent(categoryTitle)}` as any);
+  };
+
   return (
     <View className="space-y-4">
       {/* header */}
@@ -33,6 +41,7 @@ const Categories: React.FC = () => {
           <TouchableOpacity
             key={index}
             activeOpacity={0.8}
+            onPress={() => handleCategoryPress(cat.title)}
             className="mr-5 items-center"
           >
             <View
