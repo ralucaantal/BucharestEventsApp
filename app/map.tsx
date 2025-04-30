@@ -1,16 +1,11 @@
 import React, { useRef, useState, useEffect } from 'react';
-import {
-  View,
-  TextInput,
-  TouchableOpacity,
-  Dimensions,
-} from 'react-native';
+import { View, TextInput, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeftIcon } from 'react-native-heroicons/outline';
-import { destinationData } from '../constants';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import { BASE_URL } from '../constants'; // <-- adaugă link-ul corect spre backend
 
 const screenHeight = Dimensions.get('window').height;
 
@@ -20,27 +15,29 @@ const normalize = (text: string) =>
 const MapScreen: React.FC = () => {
   const router = useRouter();
   const mapRef = useRef<MapView>(null);
+  const [places, setPlaces] = useState<any[]>([]);
   const [searchText, setSearchText] = useState('');
-
-  const filteredMarkers = destinationData.filter((item) =>
-    normalize(item.title).includes(normalize(searchText))
-  );
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (filteredMarkers.length === 1) {
-      const place = filteredMarkers[0];
+    const fetchPlaces = async () => {
+      try {
+        const res = await fetch(`${BASE_URL}/places`);
+        const data = await res.json();
+        setPlaces(data);
+      } catch (error) {
+        console.error('Failed to fetch places', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      mapRef.current?.animateToRegion(
-        {
-          latitude: place.latitude,
-          longitude: place.longitude,
-          latitudeDelta: 0.02,
-          longitudeDelta: 0.02,
-        },
-        500
-      );
-    }
-  }, [filteredMarkers]);
+    fetchPlaces();
+  }, []);
+
+  const filteredMarkers = places.filter((item) =>
+    normalize(item.name).includes(normalize(searchText))
+  );
 
   const handleMarkerPress = (item: any) => {
     router.push({
@@ -48,6 +45,14 @@ const MapScreen: React.FC = () => {
       params: { ...item },
     });
   };
+
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" color="#3b82f6" />
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1">
@@ -68,7 +73,7 @@ const MapScreen: React.FC = () => {
               latitude: item.latitude,
               longitude: item.longitude,
             }}
-            title={item.title}
+            title={item.name}
             onPress={() => handleMarkerPress(item)}
           />
         ))}

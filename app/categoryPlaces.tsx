@@ -10,7 +10,7 @@ const typeMapping: { [key: string]: string[] } = {
   '🖼 Museums': ['museum'],
   '🍴 Restaurants': ['restaurant'],
   '🌳 Parks': ['park'],
-  '🎭 Culture': ['cultural_center'],
+  '🎭 Culture': ['theater', 'art_gallery', 'museum', 'movie_theater', 'point_of_interest'],
   '🎬 Cinemas': ['movie_theater'],
   '☕ Cafes': ['cafe'],
   '🍻 Bars & Pubs': ['bar'],

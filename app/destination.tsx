@@ -12,7 +12,7 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeftIcon } from 'react-native-heroicons/outline';
-import { ClockIcon, HeartIcon, MapPinIcon, SunIcon } from 'react-native-heroicons/solid';
+import { HeartIcon, MapPinIcon, StarIcon } from 'react-native-heroicons/solid';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { theme } from '../theme';
 
@@ -25,20 +25,23 @@ const DestinationScreen: React.FC = () => {
   const [isFavourite, toggleFavourite] = useState(false);
 
   const item = {
-    image: params.image,
-    title: params.title,
-    price: Number(params.price),
-    longDescription: params.longDescription,
-    duration: params.duration,
-    distance: params.distance,
-    weather: params.weather,
+    image: params.photo_url,
+    title: params.name,
+    rating: Number(params.rating),
+    address: params.address,
+    description: `Discover the charm of ${params.name} located in Bucharest.`,
   };
 
   return (
     <View className="bg-white flex-1">
-      <Image source={item.image as any} style={{ width: wp(100), height: hp(55) }} />
+      {item.image ? (
+        <Image source={{ uri: item.image as string }} style={{ width: wp(100), height: hp(55) }} />
+      ) : (
+        <View style={{ width: wp(100), height: hp(55), backgroundColor: '#d1d5db' }} />
+      )}
       <StatusBar style="light" />
 
+      {/* Top buttons */}
       <SafeAreaView className={`flex-row justify-between items-center w-full absolute ${topMargin}`}>
         <TouchableOpacity
           onPress={() => router.back()}
@@ -56,6 +59,7 @@ const DestinationScreen: React.FC = () => {
         </TouchableOpacity>
       </SafeAreaView>
 
+      {/* Content */}
       <View
         style={{ borderTopLeftRadius: 40, borderTopRightRadius: 40 }}
         className="px-5 flex flex-1 justify-between bg-white pt-8 -mt-14"
@@ -65,45 +69,20 @@ const DestinationScreen: React.FC = () => {
             <Text style={{ fontSize: wp(7) }} className="font-bold flex-1 text-neutral-700">
               {item.title}
             </Text>
-            <Text style={{ fontSize: wp(7), color: theme.text }} className="font-semibold">
-              $ {item.price}
+            <Text style={{ fontSize: wp(6.5), color: theme.text }} className="font-semibold">
+              ⭐ {item.rating?.toFixed(1) ?? 'N/A'}
             </Text>
           </View>
 
           <Text style={{ fontSize: wp(3.7) }} className="text-neutral-700 tracking-wide mb-2">
-            {item.longDescription}
+            {item.description}
           </Text>
 
-          <View className="flex-row justify-between mx-1">
-            <View className="flex-row space-x-2 items-start">
-              <ClockIcon size={wp(7)} color="skyblue" />
-              <View className="flex space-y-2">
-                <Text style={{ fontSize: wp(4.5) }} className="font-bold text-neutral-700">
-                  {item.duration}
-                </Text>
-                <Text className="text-neutral-600 tracking-wide">Duration</Text>
-              </View>
-            </View>
-
-            <View className="flex-row space-x-2 items-start">
-              <MapPinIcon size={wp(7)} color="#f87171" />
-              <View className="flex space-y-2">
-                <Text style={{ fontSize: wp(4.5) }} className="font-bold text-neutral-700">
-                  {item.distance}
-                </Text>
-                <Text className="text-neutral-600 tracking-wide">Distance</Text>
-              </View>
-            </View>
-
-            <View className="flex-row space-x-2 items-start">
-              <SunIcon size={wp(7)} color="orange" />
-              <View className="flex space-y-2">
-                <Text style={{ fontSize: wp(4.5) }} className="font-bold text-neutral-700">
-                  {item.weather}
-                </Text>
-                <Text className="text-neutral-600 tracking-wide">Sunny</Text>
-              </View>
-            </View>
+          <View className="flex-row space-x-2 items-start">
+            <MapPinIcon size={wp(7)} color="#f87171" />
+            <Text style={{ fontSize: wp(4.2) }} className="text-neutral-600 tracking-wide flex-1">
+              {item.address}
+            </Text>
           </View>
         </ScrollView>
 

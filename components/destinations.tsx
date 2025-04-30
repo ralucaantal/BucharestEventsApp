@@ -4,9 +4,8 @@ import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { LinearGradient } from 'expo-linear-gradient';
 import { HeartIcon } from 'react-native-heroicons/solid';
 import { router } from 'expo-router';
-import { BASE_URL } from '../constants';
-import { sortCategoryData } from '../constants';
-import { theme } from '../theme'; 
+import { BASE_URL, sortCategoryData } from '../constants';
+import { theme } from '../theme';
 
 type Place = {
   place_id: string;
@@ -29,7 +28,17 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ item }) => {
 
   return (
     <TouchableOpacity
-      onPress={() => router.push({ pathname: '/destination', params: { ...item } })}
+      onPress={() =>
+        router.push({
+          pathname: '/destination',
+          params: {
+            name: item.name,
+            photo_url: item.photo_url ?? '',
+            rating: item.rating,
+            address: item.address,
+          },
+        })
+      }
       style={{
         width: wp(44),
         height: wp(65),
@@ -99,7 +108,7 @@ const Destinations: React.FC = () => {
   const [allDestinations, setAllDestinations] = useState<Place[]>([]);
   const [destinations, setDestinations] = useState<Place[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState('All');
+  const [activeCategory, setActiveCategory] = useState('Popular');
 
   useEffect(() => {
     const fetchPlaces = async () => {
@@ -148,7 +157,7 @@ const Destinations: React.FC = () => {
 
   return (
     <View>
-      {/* Sortare categorii */}
+      {/* Category selector */}
       <View className="px-5 mb-4">
         <ScrollView
           horizontal
@@ -189,7 +198,7 @@ const Destinations: React.FC = () => {
         </ScrollView>
       </View>
 
-      {/* Lista destinatii */}
+      {/* Destination list */}
       <View className="px-5 flex-row flex-wrap justify-between">
         {destinations.map((item) => (
           <DestinationCard item={item} key={item.place_id} />
