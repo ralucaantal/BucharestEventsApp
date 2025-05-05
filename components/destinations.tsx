@@ -248,7 +248,7 @@ const Destinations: React.FC = () => {
         <View style={{ alignItems: 'center', marginTop: 10 }}>
           <TouchableOpacity
             onPress={() =>
-              router.push(`/categoryPlaces?category=${encodeURIComponent(activeCategory)}`)
+              router.push(`/allCategories?category=${encodeURIComponent(activeCategory)}`)
             }
             style={{
               backgroundColor: theme.bg(1),
