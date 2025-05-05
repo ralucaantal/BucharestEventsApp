@@ -150,7 +150,6 @@ const Destinations: React.FC = () => {
         const res = await fetch(`${BASE_URL}/places`);
         const data = await res.json();
         setAllDestinations(data);
-        setDestinations(data);
       } catch (error) {
         console.error('Failed to fetch places', error);
       } finally {
@@ -167,14 +166,12 @@ const Destinations: React.FC = () => {
     } else if (activeCategory === 'Popular') {
       const popular = [...allDestinations]
         .filter((p) => (p.user_ratings_total || 0) > 0)
-        .sort((a, b) => (b.user_ratings_total || 0) - (a.user_ratings_total || 0))
-        .slice(0, 20);
+        .sort((a, b) => (b.user_ratings_total || 0) - (a.user_ratings_total || 0));
       setDestinations(popular);
     } else if (activeCategory === 'Recommended') {
       const recommended = [...allDestinations]
         .filter((p) => (p.user_ratings_total || 0) > 100 && (p.rating || 0) >= 4)
-        .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-        .slice(0, 20);
+        .sort((a, b) => (b.rating || 0) - (a.rating || 0));
       setDestinations(recommended);
     } else {
       setDestinations([]);
@@ -232,7 +229,7 @@ const Destinations: React.FC = () => {
         </ScrollView>
       </View>
 
-      {/* Destination list */}
+      {/* Destination preview list (max 4) */}
       <View
         style={{
           paddingHorizontal: 20,
@@ -241,10 +238,32 @@ const Destinations: React.FC = () => {
           justifyContent: 'space-between',
         }}
       >
-        {destinations.map((item) => (
+        {destinations.slice(0, 4).map((item) => (
           <DestinationCard item={item} key={item.place_id} />
         ))}
       </View>
+
+      {/* See All button */}
+      {destinations.length > 4 && (
+        <View style={{ alignItems: 'center', marginTop: 10 }}>
+          <TouchableOpacity
+            onPress={() =>
+              router.push(`/categoryPlaces?category=${encodeURIComponent(activeCategory)}`)
+            }
+            style={{
+              backgroundColor: theme.bg(1),
+              paddingHorizontal: 30,
+              paddingVertical: 12,
+              borderRadius: 999,
+              marginBottom: 20,
+            }}
+          >
+            <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>
+              See All
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };
