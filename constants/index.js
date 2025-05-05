@@ -1,6 +1,9 @@
 export const sortCategoryData = ['All', 'Popular', 'Recommended', 'Favorites'];
 
-export const BASE_URL = 'http://172.20.10.5:3000';
+//telefon sap
+// export const BASE_URL = 'http://172.20.10.5:3000';
+//bucuresti
+export const BASE_URL = 'http://192.168.1.134:3000';
 
 export const categoriesData = [
     { title: '🏛 Monuments', image: require('../assets/images/categories/monuments.png') },

@@ -8,36 +8,36 @@ import {
   Image,
   Platform,
   TextInput,
+  Dimensions,
 } from 'react-native';
-import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { MagnifyingGlassIcon } from 'react-native-heroicons/outline';
+import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import Categories from '../components/categories';
 import Destinations from '../components/destinations';
 import QuickActions from '@/components/QuickActions';
 
+const { width } = Dimensions.get('window');
 const ios = Platform.OS === 'ios';
 
 const HomeScreen: React.FC = () => {
   const router = useRouter();
+
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: wp(10) }}
+        contentContainerStyle={{ paddingBottom: 40 }}
       >
-        {/* Header: Welcome & Avatar */}
-        <View className="flex-row justify-between items-center px-5 pt-5 pb-3">
+        {/* Header */}
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 12 }}>
           <View>
             <Text
-              style={{ fontSize: wp(6.5), lineHeight: wp(7.5) }}
-              className="font-bold text-neutral-800"
+              style={{ fontSize: 24, fontWeight: 'bold', color: '#1f2937' }}
             >
               Hello, Explorer! 👋
             </Text>
             <Text
-              className="text-neutral-400"
-              style={{ fontSize: wp(3), marginTop: 2 }}
+              style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}
             >
               What do you want to do today in Bucharest?
             </Text>
@@ -45,37 +45,55 @@ const HomeScreen: React.FC = () => {
           <TouchableOpacity onPress={() => router.push('/login')}>
             <Image
               source={require('../assets/images/avatar.png')}
-              style={{ height: wp(11), width: wp(11), borderRadius: wp(11) / 2 }}
+              style={{
+                height: 44,
+                width: 44,
+                borderRadius: 22,
+              }}
             />
           </TouchableOpacity>
         </View>
 
         {/* Search Bar */}
-        <View className="px-5 mb-4">
-          <View className="flex-row items-center bg-neutral-100 rounded-full px-4 py-3">
-            <MagnifyingGlassIcon size={22} strokeWidth={2} color="gray" />
+        <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: '#f3f4f6',
+              borderRadius: 999,
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+            }}
+          >
+            <Feather name="search" size={20} color="gray" />
             <TextInput
               placeholder="Search destinations..."
               placeholderTextColor="gray"
-              className="flex-1 text-base pl-3 text-neutral-700"
+              style={{
+                marginLeft: 10,
+                flex: 1,
+                fontSize: 16,
+                color: '#374151',
+              }}
             />
           </View>
         </View>
 
         {/* Quick Actions */}
-        <View className="mb-4">
+        <View style={{ marginBottom: 16 }}>
           <QuickActions />
         </View>
 
         {/* Categories */}
-        <View className="mb-4">
+        <View style={{ marginBottom: 16 }}>
           <Categories />
         </View>
 
         {/* Featured Destinations */}
-        <View className="mb-6">
-          <View className="px-5 mb-3">
-            <Text className="text-lg font-semibold text-neutral-800">
+        <View style={{ marginBottom: 24 }}>
+          <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
+            <Text style={{ fontSize: 18, fontWeight: '600', color: '#1f2937' }}>
               Featured Destinations
             </Text>
           </View>

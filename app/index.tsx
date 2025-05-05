@@ -1,22 +1,28 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { View, Text, Image, TouchableOpacity, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { theme } from '../theme';
+
+const { width, height } = Dimensions.get('window');
 
 export default function Index() {
   const router = useRouter();
 
   return (
-    <View className="flex-1">
-      {/* background image */}
-      <Image 
-        source={require('../assets/images/welcome.png')} 
-        className="absolute h-full w-full"
-        resizeMode="cover"
+    <View style={{ flex: 1 }}>
+      {/* Background Image */}
+      <Image
+        source={require('../assets/images/welcome.png')}
+        style={{
+          position: 'absolute',
+          height: '100%',
+          width: '100%',
+          resizeMode: 'cover',
+        }}
       />
 
-      {/* gradient overlay */}
+      {/* Gradient Overlay */}
       <LinearGradient
         colors={['transparent', 'rgba(3,105,161,0.85)']}
         start={{ x: 0.5, y: 0 }}
@@ -24,25 +30,48 @@ export default function Index() {
         style={{
           position: 'absolute',
           bottom: 0,
-          width: wp(100),
-          height: hp(60),
+          width,
+          height: height * 0.6,
           borderTopLeftRadius: 40,
           borderTopRightRadius: 40,
         }}
       />
 
-      {/* content */}
-      <View className="flex-1 justify-end space-y-10 px-8 pb-20" style={{ zIndex: 1 }}>
-        <View className="space-y-6 mb-8 items-center">
+      {/* Content */}
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'flex-end',
+          paddingHorizontal: 32,
+          paddingBottom: 40,
+          zIndex: 1,
+        }}
+      >
+        <View
+          style={{
+            alignItems: 'center',
+            marginBottom: 24,
+          }}
+        >
           <Text
-            className="text-white font-bold text-center"
-            style={{ fontSize: wp(10), lineHeight: wp(10), marginBottom: wp(2) }}
+            style={{
+              color: '#ffffff',
+              fontWeight: 'bold',
+              textAlign: 'center',
+              fontSize: width * 0.1,
+              lineHeight: width * 0.1,
+              marginBottom: width * 0.05,
+            }}
           >
             Life in Bucharest made easier 🤭
           </Text>
           <Text
-            className="text-neutral-200 font-medium text-center"
-            style={{ fontSize: wp(6) }}
+            style={{
+              color: '#e5e7eb',
+              fontWeight: '500',
+              textAlign: 'center',
+              fontSize: width * 0.06,
+            }}
           >
             Find out about activities in Bucharest with just one tap.
           </Text>
@@ -50,11 +79,25 @@ export default function Index() {
 
         <TouchableOpacity
           onPress={() => router.push('/home')}
-          className="bg-white mx-auto p-4 px-12 rounded-full shadow-lg"
+          style={{
+            backgroundColor: 'white',
+            alignSelf: 'center',
+            paddingVertical: 16,
+            paddingHorizontal: 48,
+            borderRadius: 999,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.2,
+            shadowRadius: 6,
+            elevation: 3,
+          }}
         >
           <Text
-            className="text-sky-700 font-bold"
-            style={{ fontSize: wp(5.2) }}
+            style={{
+              color: theme.text,
+              fontWeight: 'bold',
+              fontSize: width * 0.052,
+            }}
           >
             Let's go!
           </Text>

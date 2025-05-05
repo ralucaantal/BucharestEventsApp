@@ -8,11 +8,13 @@ import {
   Image,
   Platform,
   TextInput,
+  Dimensions,
 } from 'react-native';
-import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { MagnifyingGlassIcon, ChevronLeftIcon } from 'react-native-heroicons/outline';
 import { useRouter } from 'expo-router';
 import { format, addDays, subDays } from 'date-fns';
+import { Feather } from '@expo/vector-icons';
+
+const { width } = Dimensions.get('window');
 
 const ios = Platform.OS === 'ios';
 
@@ -24,7 +26,15 @@ const daysOptions = [
   { label: 'In 3 Days', date: addDays(new Date(), 3) },
 ];
 
-const eventsToday = [
+type EventItem = {
+  id: number;
+  title: string;
+  time: string;
+  location: string;
+  image: any;
+};
+
+const eventsToday: EventItem[] = [
   {
     id: 1,
     title: 'Street Delivery Festival',
@@ -50,120 +60,143 @@ const eventsToday = [
 
 const CalendarScreen: React.FC = () => {
   const router = useRouter();
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: wp(10) }}
+        contentContainerStyle={{ paddingBottom: 40 }}
       >
-        {/* Header with Back Button */}
-        <View className="flex-row items-center justify-between px-5 pt-5 pb-3">
-          <View className="flex-row items-center space-x-4">
-            <TouchableOpacity
-              onPress={() => router.back()}
-              style={{ marginRight: wp(3) }}
-              className="p-2 rounded-full bg-neutral-100"
-            >
-              <ChevronLeftIcon size={wp(6)} strokeWidth={3} color="#1f2937" />
-            </TouchableOpacity>
-            <View>
-              <Text
-                style={{ fontSize: wp(6.5), lineHeight: wp(7.5) }}
-                className="font-bold text-neutral-800"
-              >
-                Today's Events 📅
-              </Text>
-              <Text
-                className="text-neutral-400"
-                style={{ fontSize: wp(3), marginTop: 2 }}
-              >
-                What's happening today in Bucharest?
-              </Text>
-            </View>
+        {/* Header */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', padding: 20 }}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={{
+              padding: 10,
+              backgroundColor: '#f3f4f6',
+              borderRadius: 999,
+              marginRight: 10,
+            }}
+          >
+            <Feather name="chevron-left" size={24} color="#1f2937" />
+          </TouchableOpacity>
+          <View>
+            <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#1f2937' }}>
+              Today's Events 📅
+            </Text>
+            <Text style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>
+              What's happening today in Bucharest?
+            </Text>
           </View>
         </View>
 
-        {/* Search Bar */}
-        <View className="px-5 mb-4">
-          <View className="flex-row items-center bg-neutral-100 rounded-full px-4 py-3">
-            <MagnifyingGlassIcon size={22} strokeWidth={2} color="gray" />
+        {/* Search */}
+        <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: '#f3f4f6',
+              borderRadius: 999,
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+            }}
+          >
+            <Feather name="search" size={20} color="gray" />
             <TextInput
               placeholder="Search events..."
               placeholderTextColor="gray"
-              className="flex-1 text-base pl-3 text-neutral-700"
+              style={{
+                marginLeft: 10,
+                flex: 1,
+                fontSize: 16,
+                color: '#374151',
+              }}
             />
           </View>
         </View>
 
-        {/* Day Selector Bar */}
-        <View className="px-5 mb-6">
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 5 }}
-            className="space-x-4"
-          >
-            {daysOptions.map((day, index) => {
-              const isSelected = format(selectedDate, 'yyyy-MM-dd') === format(day.date, 'yyyy-MM-dd');
-              return (
-                <TouchableOpacity
-                  key={index}
-                  style={{ marginRight: wp(1) }}
-                  onPress={() => setSelectedDate(day.date)}
-                  className={`items-center p-3 px-5 rounded-full ${
-                    isSelected ? 'bg-blue-600' : 'bg-neutral-100'
-                  }`}
+        {/* Day Selector */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ paddingLeft: 20, marginBottom: 20 }}
+        >
+          {daysOptions.map((day, index) => {
+            const isSelected =
+              format(selectedDate, 'yyyy-MM-dd') === format(day.date, 'yyyy-MM-dd');
+            return (
+              <TouchableOpacity
+                key={index}
+                onPress={() => setSelectedDate(day.date)}
+                style={{
+                  paddingVertical: 10,
+                  paddingHorizontal: 20,
+                  borderRadius: 999,
+                  backgroundColor: isSelected ? '#2563eb' : '#f3f4f6',
+                  marginRight: 10,
+                  alignItems: 'center',
+                }}
+              >
+                <Text
+                  style={{
+                    fontWeight: 'bold',
+                    fontSize: 14,
+                    color: isSelected ? '#fff' : '#374151',
+                  }}
                 >
-                  <Text
-                    className={`font-bold ${isSelected ? 'text-white' : 'text-neutral-700'}`}
-                    style={{ fontSize: wp(3.5) }}
-                  >
-                    {day.label}
-                  </Text>
-                  <Text
-                    className={`text-xs ${isSelected ? 'text-white' : 'text-neutral-500'}`}
-                  >
-                    {format(day.date, 'dd MMM')}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        </View>
+                  {day.label}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: isSelected ? '#fff' : '#9ca3af',
+                  }}
+                >
+                  {format(day.date, 'dd MMM')}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
 
         {/* Events List */}
-        <View className="space-y-5 px-5">
+        <View style={{ paddingHorizontal: 20 }}>
           {eventsToday.map((event) => (
             <TouchableOpacity
               key={event.id}
               activeOpacity={0.8}
-              style={{ marginBottom: wp(2) }}
-              className="flex-row bg-neutral-100 p-3 rounded-2xl items-center shadow-sm"
+              style={{
+                flexDirection: 'row',
+                backgroundColor: '#f3f4f6',
+                padding: 12,
+                borderRadius: 20,
+                marginBottom: 14,
+                alignItems: 'center',
+              }}
             >
               <Image
                 source={event.image}
                 style={{
-                  width: wp(20),
-                  height: wp(20),
-                  borderRadius: wp(5),
-                  marginRight: wp(3),
+                  width: width * 0.22,
+                  height: width * 0.22,
+                  borderRadius: 12,
+                  marginRight: 14,
                 }}
                 resizeMode="cover"
               />
-              <View className="flex-1">
-                <Text className="font-bold text-neutral-800" style={{ fontSize: wp(4.2) }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#1f2937' }}>
                   {event.title}
                 </Text>
-                <Text className="text-neutral-500" style={{ fontSize: wp(3.2), marginTop: 2 }}>
+                <Text style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>
                   {event.time} · {event.location}
                 </Text>
               </View>
             </TouchableOpacity>
           ))}
         </View>
-
       </ScrollView>
     </SafeAreaView>
   );

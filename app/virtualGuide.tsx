@@ -8,98 +8,162 @@ import {
   Image,
   TextInput,
   Platform,
+  Dimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { ChevronLeftIcon } from 'react-native-heroicons/outline';
+import { Feather } from '@expo/vector-icons';
 
+const { width } = Dimensions.get('window');
 const ios = Platform.OS === 'ios';
 
 const VirtualGuideScreen: React.FC = () => {
   const router = useRouter();
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: wp(10) }}>
-        
-        {/* Header with Back Button and Avatar */}
-        <View className="flex-row items-center justify-between px-5 pt-5 pb-3">
-          <View className="flex-row items-center space-x-4">
-            <TouchableOpacity
-              onPress={() => router.back()}
-              style={{ marginRight: wp(3) }}
-              className="p-2 rounded-full bg-neutral-100"
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}
+      >
+        {/* Header */}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 20,
+            paddingTop: 20,
+            paddingBottom: 12,
+          }}
+        >
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={{
+              padding: 10,
+              borderRadius: 999,
+              backgroundColor: '#f3f4f6',
+              marginRight: 12,
+            }}
+          >
+            <Feather name="chevron-left" size={24} color="#1f2937" />
+          </TouchableOpacity>
+          <View>
+            <Text
+              style={{
+                fontSize: width * 0.065,
+                fontWeight: 'bold',
+                color: '#1f2937',
+              }}
             >
-              <ChevronLeftIcon size={wp(6)} strokeWidth={3} color="#1f2937" />
-            </TouchableOpacity>
-            <View>
-              <Text
-                style={{ fontSize: wp(6.5), lineHeight: wp(7.5) }}
-                className="font-bold text-neutral-800"
-              >
-                Virtual Guide 🤖
-              </Text>
-              <Text
-                className="text-neutral-400"
-                style={{ fontSize: wp(3), marginTop: 2 }}
-              >
-                Plan your perfect day in Bucharest
-              </Text>
-            </View>
+              Virtual Guide 🤖
+            </Text>
+            <Text
+              style={{
+                fontSize: width * 0.03,
+                color: '#9ca3af',
+                marginTop: 2,
+              }}
+            >
+              Plan your perfect day in Bucharest
+            </Text>
           </View>
         </View>
 
         {/* Robot Illustration */}
-        <View className="items-center my-8">
+        <View style={{ alignItems: 'center', marginVertical: 32 }}>
           <Image
             source={require('../assets/images/guide.png')}
             style={{
-              width: wp(50),
-              height: wp(50),
-              borderRadius: wp(25),
+              width: width * 0.5,
+              height: width * 0.5,
+              borderRadius: width * 0.25,
               borderWidth: 2,
-              borderColor: '#e5e7eb'
+              borderColor: '#e5e7eb',
+              resizeMode: 'contain',
             }}
-            resizeMode="contain"
           />
         </View>
 
-        {/* Input for user itinerary request */}
-        <View className="px-5 mb-8">
-          <Text className="text-neutral-700 font-semibold mb-2" style={{ fontSize: wp(4) }}>
+        {/* User input */}
+        <View style={{ paddingHorizontal: 20, marginBottom: 32 }}>
+          <Text
+            style={{
+              fontSize: width * 0.04,
+              fontWeight: '600',
+              color: '#374151',
+              marginBottom: 8,
+            }}
+          >
             Tell me what you want to do!
           </Text>
-          <View className="flex-row items-center bg-neutral-100 rounded-full px-4 py-3">
+          <View
+            style={{
+              backgroundColor: '#f3f4f6',
+              borderRadius: 999,
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}
+          >
             <TextInput
               placeholder="Ex: Museums + Parks + Cafés"
               placeholderTextColor="gray"
-              className="flex-1 text-base text-neutral-700"
+              style={{
+                flex: 1,
+                fontSize: 16,
+                color: '#374151',
+              }}
             />
           </View>
         </View>
 
-        {/* Suggested Actions */}
-        <View className="px-5 space-y-4">
+        {/* Actions */}
+        <View style={{ paddingHorizontal: 20, gap: 16 }}>
           <TouchableOpacity
-            className="bg-blue-600 py-4 rounded-full shadow-lg"
             onPress={() => alert('Generate itinerary')}
-            style={{marginBottom: wp(2)}}
+            style={{
+              backgroundColor: '#2563eb',
+              paddingVertical: 16,
+              borderRadius: 999,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.2,
+              shadowRadius: 4,
+              elevation: 3,
+            }}
           >
-            <Text className="text-white text-center font-bold" style={{ fontSize: wp(4.5) }}>
+            <Text
+              style={{
+                textAlign: 'center',
+                color: 'white',
+                fontWeight: 'bold',
+                fontSize: width * 0.045,
+              }}
+            >
               Generate Itinerary
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            className="bg-neutral-100 py-4 rounded-full"
             onPress={() => alert('Surprise me!')}
+            style={{
+              backgroundColor: '#f3f4f6',
+              paddingVertical: 16,
+              borderRadius: 999,
+            }}
           >
-            <Text className="text-neutral-700 text-center font-semibold" style={{ fontSize: wp(4.5) }}>
+            <Text
+              style={{
+                textAlign: 'center',
+                color: '#374151',
+                fontWeight: '600',
+                fontSize: width * 0.045,
+              }}
+            >
               Surprise Me! 🎉
             </Text>
           </TouchableOpacity>
         </View>
-
       </ScrollView>
     </SafeAreaView>
   );

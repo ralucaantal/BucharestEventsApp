@@ -1,11 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, ActivityIndicator, ScrollView } from 'react-native';
-import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+  ScrollView,
+  Dimensions,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { HeartIcon } from 'react-native-heroicons/solid';
+import { FontAwesome } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { BASE_URL, sortCategoryData } from '../constants';
 import { theme } from '../theme';
+
+const { width } = Dimensions.get('window');
 
 type Place = {
   place_id: string;
@@ -40,10 +49,10 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ item }) => {
         })
       }
       style={{
-        width: wp(44),
-        height: wp(65),
-        marginBottom: wp(5),
-        borderRadius: wp(6),
+        width: width * 0.44,
+        height: width * 0.65,
+        marginBottom: 20,
+        borderRadius: 16,
         overflow: 'hidden',
         backgroundColor: '#f3f4f6',
         shadowColor: '#000',
@@ -51,11 +60,10 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ item }) => {
         shadowOpacity: 0.08,
         shadowRadius: 4,
         elevation: 3,
+        position: 'relative',
       }}
-      className="relative"
       activeOpacity={0.9}
     >
-      {/* Image */}
       {item.photo_url ? (
         <Image
           source={{ uri: item.photo_url }}
@@ -63,12 +71,18 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ item }) => {
           style={{ width: '100%', height: '100%' }}
         />
       ) : (
-        <View className="flex-1 bg-neutral-300 justify-center items-center">
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: '#d1d5db',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
           <Text>No image</Text>
         </View>
       )}
 
-      {/* Gradient overlay */}
       <LinearGradient
         colors={['transparent', 'rgba(0,0,0,0.85)']}
         style={{
@@ -79,22 +93,42 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ item }) => {
         }}
       />
 
-      {/* Favorite button */}
       <TouchableOpacity
         onPress={() => toggleFavourite(!isFavourite)}
-        className="absolute top-3 right-3 bg-white/50 rounded-full p-2"
+        style={{
+          position: 'absolute',
+          top: 12,
+          right: 12,
+          backgroundColor: 'rgba(255,255,255,0.5)',
+          padding: 8,
+          borderRadius: 999,
+        }}
       >
-        <HeartIcon size={wp(4.5)} color={isFavourite ? 'red' : 'white'} />
+        <FontAwesome
+          name="heart"
+          size={20}
+          color={isFavourite ? 'red' : 'white'}
+          solid={isFavourite}
+        />
       </TouchableOpacity>
 
-      {/* Text overlay */}
-      <View className="absolute bottom-4 left-4 right-4">
-        <Text className="text-white font-bold" style={{ fontSize: wp(4.2), marginBottom: 2 }}>
+      <View style={{ position: 'absolute', bottom: 16, left: 16, right: 16 }}>
+        <Text
+          style={{
+            color: 'white',
+            fontWeight: 'bold',
+            fontSize: width * 0.042,
+            marginBottom: 4,
+          }}
+        >
           {item.name}
         </Text>
         <Text
-          className="text-neutral-200"
-          style={{ fontSize: wp(3.1), lineHeight: wp(4) }}
+          style={{
+            color: '#e5e7eb',
+            fontSize: width * 0.031,
+            lineHeight: width * 0.04,
+          }}
           numberOfLines={2}
         >
           {item.address}
@@ -132,13 +166,13 @@ const Destinations: React.FC = () => {
       setDestinations(allDestinations);
     } else if (activeCategory === 'Popular') {
       const popular = [...allDestinations]
-        .filter(p => (p.user_ratings_total || 0) > 0)
+        .filter((p) => (p.user_ratings_total || 0) > 0)
         .sort((a, b) => (b.user_ratings_total || 0) - (a.user_ratings_total || 0))
         .slice(0, 20);
       setDestinations(popular);
     } else if (activeCategory === 'Recommended') {
       const recommended = [...allDestinations]
-        .filter(p => (p.user_ratings_total || 0) > 100 && (p.rating || 0) >= 4)
+        .filter((p) => (p.user_ratings_total || 0) > 100 && (p.rating || 0) >= 4)
         .sort((a, b) => (b.rating || 0) - (a.rating || 0))
         .slice(0, 20);
       setDestinations(recommended);
@@ -149,7 +183,7 @@ const Destinations: React.FC = () => {
 
   if (loading) {
     return (
-      <View className="flex-1 justify-center items-center">
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color="#3b82f6" />
       </View>
     );
@@ -158,7 +192,7 @@ const Destinations: React.FC = () => {
   return (
     <View>
       {/* Category selector */}
-      <View className="px-5 mb-4">
+      <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -171,11 +205,11 @@ const Destinations: React.FC = () => {
                 key={index}
                 onPress={() => setActiveCategory(cat)}
                 style={{
-                  paddingVertical: wp(2),
-                  paddingHorizontal: wp(5),
-                  marginRight: wp(3),
+                  paddingVertical: 8,
+                  paddingHorizontal: 20,
+                  marginRight: 12,
                   backgroundColor: isActive ? 'white' : '#f3f4f6',
-                  borderRadius: wp(5),
+                  borderRadius: 999,
                   shadowColor: '#000',
                   shadowOffset: { width: 0, height: 1 },
                   shadowOpacity: isActive ? 0.1 : 0,
@@ -184,9 +218,9 @@ const Destinations: React.FC = () => {
                 }}
               >
                 <Text
-                  className="font-medium"
                   style={{
-                    fontSize: wp(3.8),
+                    fontWeight: '500',
+                    fontSize: width * 0.038,
                     color: isActive ? theme.text : 'gray',
                   }}
                 >
@@ -199,7 +233,14 @@ const Destinations: React.FC = () => {
       </View>
 
       {/* Destination list */}
-      <View className="px-5 flex-row flex-wrap justify-between">
+      <View
+        style={{
+          paddingHorizontal: 20,
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          justifyContent: 'space-between',
+        }}
+      >
         {destinations.map((item) => (
           <DestinationCard item={item} key={item.place_id} />
         ))}

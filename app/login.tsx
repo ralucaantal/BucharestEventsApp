@@ -6,12 +6,14 @@ import {
   TouchableOpacity,
   Image,
   Platform,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { ChevronLeftIcon } from 'react-native-heroicons/outline';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { Feather } from '@expo/vector-icons';
+
+const { width, height } = Dimensions.get('window');
 
 const LoginScreen: React.FC = () => {
   const router = useRouter();
@@ -19,12 +21,16 @@ const LoginScreen: React.FC = () => {
   const [password, setPassword] = useState('');
 
   return (
-    <View className="flex-1">
+    <View style={{ flex: 1 }}>
       {/* Background image */}
       <Image
         source={require('../assets/images/login.png')}
-        className="absolute h-full w-full"
-        resizeMode="cover"
+        style={{
+          position: 'absolute',
+          height: '100%',
+          width: '100%',
+          resizeMode: 'cover',
+        }}
       />
 
       {/* Gradient overlay */}
@@ -35,48 +41,89 @@ const LoginScreen: React.FC = () => {
         style={{
           position: 'absolute',
           bottom: 0,
-          width: wp(100),
-          height: hp(100),
+          width: width,
+          height: height,
         }}
       />
 
       {/* Back button */}
-      <SafeAreaView className="absolute top-0 left-0 right-0 z-20">
-        <View className="flex-row justify-start px-4 pt-2">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="p-2 rounded-full"
-            style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}
-          >
-            <ChevronLeftIcon size={wp(7)} strokeWidth={4} color="white" />
-          </TouchableOpacity>
-        </View>
+      <SafeAreaView
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 20,
+          paddingHorizontal: 16,
+          paddingTop: 8,
+        }}
+      >
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={{
+            backgroundColor: 'rgba(255,255,255,0.5)',
+            padding: 10,
+            borderRadius: 999,
+            alignSelf: 'flex-start',
+          }}
+        >
+          <Feather name="chevron-left" size={28} color="white" />
+        </TouchableOpacity>
       </SafeAreaView>
 
       {/* Bottom content */}
-      <View className="flex-1 justify-end px-8 pb-10 space-y-6 z-10">
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'flex-end',
+          paddingHorizontal: 32,
+          paddingBottom: 40,
+          zIndex: 10,
+        }}
+      >
         {/* Header */}
-        <View className="items-center space-y-2 mb-4">
+        <View style={{ alignItems: 'center', marginBottom: 20 }}>
           <Text
-            className="text-white font-bold text-center"
-            style={{ fontSize: wp(8), lineHeight: wp(9.5) }}
+            style={{
+              fontSize: width * 0.08,
+              lineHeight: width * 0.095,
+              fontWeight: 'bold',
+              color: 'white',
+              textAlign: 'center',
+            }}
           >
             Welcome back 👋
           </Text>
-          <Text className="text-neutral-200 font-medium text-center" style={{ fontSize: wp(4.2) }}>
+          <Text
+            style={{
+              fontSize: width * 0.042,
+              color: '#e5e7eb',
+              fontWeight: '500',
+              marginTop: 6,
+              textAlign: 'center',
+            }}
+          >
             Sign in to explore Bucharest
           </Text>
         </View>
 
         {/* Inputs */}
-        <View className="space-y-8">
+        <View style={{ gap: 20, marginBottom: 24 }}>
           <TextInput
             placeholder="Email"
             placeholderTextColor="#e5e7eb"
             value={email}
             onChangeText={setEmail}
-            className="bg-white/20 border border-white/30 rounded-full px-6 py-3 text-white text-base"
-            style={{ marginBottom: wp(2) }}
+            style={{
+              backgroundColor: 'rgba(255,255,255,0.2)',
+              borderColor: 'rgba(255,255,255,0.3)',
+              borderWidth: 1,
+              borderRadius: 999,
+              paddingHorizontal: 24,
+              paddingVertical: 12,
+              color: 'white',
+              fontSize: 16,
+            }}
           />
           <TextInput
             placeholder="Password"
@@ -84,59 +131,102 @@ const LoginScreen: React.FC = () => {
             secureTextEntry
             value={password}
             onChangeText={setPassword}
-            className="bg-white/20 border border-white/30 rounded-full px-6 py-3 text-white text-base"
+            style={{
+              backgroundColor: 'rgba(255,255,255,0.2)',
+              borderColor: 'rgba(255,255,255,0.3)',
+              borderWidth: 1,
+              borderRadius: 999,
+              paddingHorizontal: 24,
+              paddingVertical: 12,
+              color: 'white',
+              fontSize: 16,
+            }}
           />
         </View>
 
         {/* Login Button */}
         <TouchableOpacity
           onPress={() => alert('Login logic here')}
-          className="bg-white py-3 rounded-full shadow-lg mt-2"
+          style={{
+            backgroundColor: 'white',
+            paddingVertical: 12,
+            borderRadius: 999,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
+            elevation: 5,
+          }}
         >
-          <Text className="text-sky-700 font-bold text-center" style={{ fontSize: wp(5.2) }}>
+          <Text
+            style={{
+              textAlign: 'center',
+              color: '#0284c7',
+              fontWeight: 'bold',
+              fontSize: width * 0.052,
+            }}
+          >
             Log In
           </Text>
         </TouchableOpacity>
 
-        {/* Social options */}
-        <View className="flex-row justify-center space-x-14 mt-4">
-            <TouchableOpacity onPress={() => alert('Continue with Google')}
-                style={{ marginHorizontal: wp(1) }}>
-                <Image
-                source={require('../assets/images/icons/google.png')}
-                style={{
-                    height: wp(11),
-                    width: wp(11),
-                    borderRadius: wp(11) / 2,
-                    borderWidth: 1,
-                    borderColor: '#e5e7eb',
-                }}
-                />
-            </TouchableOpacity>
+        {/* Social Options */}
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'center',
+            gap: 32,
+            marginTop: 20,
+          }}
+        >
+          <TouchableOpacity onPress={() => alert('Continue with Google')}>
+            <Image
+              source={require('../assets/images/icons/google.png')}
+              style={{
+                height: width * 0.11,
+                width: width * 0.11,
+                borderRadius: (width * 0.11) / 2,
+                borderWidth: 1,
+                borderColor: '#e5e7eb',
+              }}
+            />
+          </TouchableOpacity>
 
-        {Platform.OS === 'ios' && (
-            <TouchableOpacity onPress={() => alert('Continue with Apple')} style={{ marginHorizontal: wp(1) }}>
-                <Image
-                    source={require('../assets/images/icons/apple.png')}
-                    style={{
-                    height: wp(11),
-                    width: wp(11),
-                    borderRadius: wp(11) / 2,
-                    borderWidth: 1,
-                    borderColor: '#e5e7eb',
-                    }}
-                />
+          {Platform.OS === 'ios' && (
+            <TouchableOpacity onPress={() => alert('Continue with Apple')}>
+              <Image
+                source={require('../assets/images/icons/apple.png')}
+                style={{
+                  height: width * 0.11,
+                  width: width * 0.11,
+                  borderRadius: (width * 0.11) / 2,
+                  borderWidth: 1,
+                  borderColor: '#e5e7eb',
+                }}
+              />
             </TouchableOpacity>
-        )}
+          )}
         </View>
 
-
-
         {/* Register link */}
-        <View className="flex-row justify-center mt-3">
-          <Text className="text-neutral-200">Don’t have an account?</Text>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'center',
+            marginTop: 16,
+          }}
+        >
+          <Text style={{ color: '#e5e7eb' }}>Don’t have an account?</Text>
           <TouchableOpacity onPress={() => alert('Go to Register screen')}>
-            <Text className="text-white font-medium ml-1">Register</Text>
+            <Text
+              style={{
+                color: 'white',
+                fontWeight: '500',
+                marginLeft: 6,
+              }}
+            >
+              Register
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
