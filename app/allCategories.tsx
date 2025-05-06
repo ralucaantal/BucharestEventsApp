@@ -52,26 +52,22 @@ const AllCategoriesScreen: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!category || allDestinations.length === 0) return;
-
-    if (category === 'All') {
-      setPlaces(allDestinations);
-    } else if (category === 'Popular') {
-      setPlaces(
-        allDestinations
-          .filter((p) => (p.user_ratings_total || 0) > 0)
-          .sort((a, b) => (b.user_ratings_total || 0) - (a.user_ratings_total || 0))
-      );
-    } else if (category === 'Recommended') {
-      setPlaces(
-        allDestinations
-          .filter((p) => (p.user_ratings_total || 0) > 100 && (p.rating || 0) >= 4)
-          .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-      );
-    } else {
-      setPlaces([]);
-    }
-  }, [category, allDestinations]);
+    const fetchPlaces = async () => {
+      if (!category) return;
+      setLoading(true);
+      try {
+        const res = await fetch(`${BASE_URL}/places?category=${encodeURIComponent(category as string)}`);
+        const data = await res.json();
+        setPlaces(data);
+      } catch (error) {
+        console.error('Failed to fetch places', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchPlaces();
+  }, [category]);  
 
   if (loading) {
     return (

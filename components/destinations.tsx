@@ -5,13 +5,12 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
-  ScrollView,
   Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FontAwesome } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { BASE_URL, sortCategoryData } from '../constants';
+import { BASE_URL } from '../constants';
 import { theme } from '../theme';
 
 const { width } = Dimensions.get('window');
@@ -28,11 +27,11 @@ type Place = {
   user_ratings_total?: number;
 };
 
-type DestinationCardProps = {
-  item: Place;
+type Props = {
+  activeCategory: string;
 };
 
-const DestinationCard: React.FC<DestinationCardProps> = ({ item }) => {
+const DestinationCard: React.FC<{ item: Place }> = ({ item }) => {
   const [isFavourite, toggleFavourite] = useState(false);
 
   return (
@@ -138,18 +137,19 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ item }) => {
   );
 };
 
-const Destinations: React.FC = () => {
-  const [allDestinations, setAllDestinations] = useState<Place[]>([]);
+const Destinations: React.FC<Props> = ({ activeCategory }) => {
   const [destinations, setDestinations] = useState<Place[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState('Popular');
 
   useEffect(() => {
     const fetchPlaces = async () => {
+      setLoading(true);
       try {
-        const res = await fetch(`${BASE_URL}/places`);
+        const res = await fetch(
+          `${BASE_URL}/places?category=${encodeURIComponent(activeCategory)}&limit=4`
+        );
         const data = await res.json();
-        setAllDestinations(data);
+        setDestinations(data);
       } catch (error) {
         console.error('Failed to fetch places', error);
       } finally {
@@ -158,93 +158,21 @@ const Destinations: React.FC = () => {
     };
 
     fetchPlaces();
-  }, []);
-
-  useEffect(() => {
-    if (activeCategory === 'All') {
-      setDestinations(allDestinations);
-    } else if (activeCategory === 'Popular') {
-      const popular = [...allDestinations]
-        .filter((p) => (p.user_ratings_total || 0) > 0)
-        .sort((a, b) => (b.user_ratings_total || 0) - (a.user_ratings_total || 0));
-      setDestinations(popular);
-    } else if (activeCategory === 'Recommended') {
-      const recommended = [...allDestinations]
-        .filter((p) => (p.user_ratings_total || 0) > 100 && (p.rating || 0) >= 4)
-        .sort((a, b) => (b.rating || 0) - (a.rating || 0));
-      setDestinations(recommended);
-    } else {
-      setDestinations([]);
-    }
-  }, [activeCategory, allDestinations]);
-
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#3b82f6" />
-      </View>
-    );
-  }
+  }, [activeCategory]);
 
   return (
-    <View>
-      {/* Category selector */}
-      <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingVertical: 8 }}
-        >
-          {sortCategoryData.map((cat, index) => {
-            const isActive = cat === activeCategory;
-            return (
-              <TouchableOpacity
-                key={index}
-                onPress={() => setActiveCategory(cat)}
-                style={{
-                  paddingVertical: 8,
-                  paddingHorizontal: 20,
-                  marginRight: 12,
-                  backgroundColor: isActive ? 'white' : '#f3f4f6',
-                  borderRadius: 999,
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: isActive ? 0.1 : 0,
-                  shadowRadius: isActive ? 3 : 0,
-                  elevation: isActive ? 2 : 0,
-                }}
-              >
-                <Text
-                  style={{
-                    fontWeight: '500',
-                    fontSize: width * 0.038,
-                    color: isActive ? theme.text : 'gray',
-                  }}
-                >
-                  {cat}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-      </View>
+    <View style={{ minHeight: 280, paddingHorizontal: 20 }}>
+      {loading ? (
+        <ActivityIndicator size="large" color="#3b82f6" style={{ marginTop: 20, alignSelf: 'center' }} />
+      ) : (
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+          {destinations.map((item) => (
+            <DestinationCard item={item} key={item.place_id} />
+          ))}
+        </View>
+      )}
 
-      {/* Destination preview list (max 4) */}
-      <View
-        style={{
-          paddingHorizontal: 20,
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          justifyContent: 'space-between',
-        }}
-      >
-        {destinations.slice(0, 4).map((item) => (
-          <DestinationCard item={item} key={item.place_id} />
-        ))}
-      </View>
-
-      {/* See All button */}
-      {destinations.length > 4 && (
+      {!loading && destinations.length === 4 && (
         <View style={{ alignItems: 'center', marginTop: 10 }}>
           <TouchableOpacity
             onPress={() =>

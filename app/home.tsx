@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -15,12 +15,14 @@ import { useRouter } from 'expo-router';
 import Categories from '../components/categories';
 import Destinations from '../components/destinations';
 import QuickActions from '@/components/QuickActions';
+import CategorySelector from '../components/categorySelector';
 
 const { width } = Dimensions.get('window');
 const ios = Platform.OS === 'ios';
 
 const HomeScreen: React.FC = () => {
   const router = useRouter();
+  const [activeCategory, setActiveCategory] = useState('Popular');
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
@@ -31,14 +33,10 @@ const HomeScreen: React.FC = () => {
         {/* Header */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 12 }}>
           <View>
-            <Text
-              style={{ fontSize: 24, fontWeight: 'bold', color: '#1f2937' }}
-            >
+            <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#1f2937' }}>
               Hello, Explorer! 👋
             </Text>
-            <Text
-              style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}
-            >
+            <Text style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>
               What do you want to do today in Bucharest?
             </Text>
           </View>
@@ -97,7 +95,15 @@ const HomeScreen: React.FC = () => {
               Featured Destinations
             </Text>
           </View>
-          <Destinations />
+
+          {/* Category Selector */}
+          <CategorySelector
+            activeCategory={activeCategory}
+            onSelect={(cat) => setActiveCategory(cat)}
+          />
+
+          {/* Destinations */}
+          <Destinations activeCategory={activeCategory} />
         </View>
       </ScrollView>
     </SafeAreaView>

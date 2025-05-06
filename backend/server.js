@@ -52,8 +52,25 @@ app.post('/import-places', async (req, res) => {
 });
 
 app.get('/places', async (req, res) => {
+  const { category, limit } = req.query;
+
+  let query = 'SELECT * FROM places';
+  const values = [];
+
+  if (category === 'Popular') {
+    query += ' WHERE user_ratings_total > 0 ORDER BY user_ratings_total DESC';
+  } else if (category === 'Recommended') {
+    query += ' WHERE user_ratings_total > 100 AND rating >= 4 ORDER BY rating DESC';
+  } else {
+    query += ' ORDER BY name'; // fallback pentru All
+  }
+
+  if (limit) {
+    query += ` LIMIT ${parseInt(limit, 10)}`;
+  }
+
   try {
-    const result = await pool.query('SELECT * FROM places');
+    const result = await pool.query(query, values);
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching places:', error);
