@@ -41,7 +41,7 @@ type Place = {
   photo_url: string | null;
 };
 
-const CategoryPlacesScreen = () => {
+const CategoryPlacesScreen: React.FC = () => {
   const router = useRouter();
   const { category } = useLocalSearchParams();
   const [places, setPlaces] = useState<Place[]>([]);
@@ -49,16 +49,18 @@ const CategoryPlacesScreen = () => {
 
   useEffect(() => {
     const fetchPlaces = async () => {
+      setLoading(true);
       try {
-        const res = await fetch(`${BASE_URL}/places`);
-        const data = await res.json();
         const mappedTypes = typeMapping[category as string] || [];
 
-        const filtered = data.filter((place: Place) =>
-          place.types.some((t) => mappedTypes.includes(t))
-        );
-
-        setPlaces(filtered);
+        if (mappedTypes.length > 0) {
+          const tag = mappedTypes[0]; // trimite doar primul tip pentru backend
+          const res = await fetch(`${BASE_URL}/places?tag=${encodeURIComponent(tag)}`);
+          const data = await res.json();
+          setPlaces(data);
+        } else {
+          setPlaces([]);
+        }
       } catch (error) {
         console.error('Failed to fetch places', error);
       } finally {
@@ -66,7 +68,7 @@ const CategoryPlacesScreen = () => {
       }
     };
 
-    fetchPlaces();
+    if (category) fetchPlaces();
   }, [category]);
 
   if (loading) {
@@ -106,7 +108,7 @@ const CategoryPlacesScreen = () => {
           </View>
         </View>
 
-        {/* List of Places */}
+        {/* Places List */}
         <View style={{ paddingHorizontal: 20 }}>
           {places.map((place) => (
             <TouchableOpacity
