@@ -147,6 +147,18 @@ app.get("/places", async (req, res) => {
   }
 });
 
+app.get('/events', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT * FROM events ORDER BY date ASC`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('❌ Error fetching events:', err);
+    res.status(500).json({ error: 'Failed to fetch events' });
+  }
+});
+
 app.listen(3000, () =>
   console.log("🟢 Server running at http://localhost:3000"),
 );
