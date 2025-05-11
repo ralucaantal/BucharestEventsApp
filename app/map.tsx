@@ -7,50 +7,78 @@ import {
   ActivityIndicator,
   Text,
 } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
-import { BASE_URL } from '../constants'; // <-- adaugă link-ul corect spre backend
+import { BASE_URL } from '../constants';
 
 const { width, height } = Dimensions.get('window');
 
 const normalize = (text: string) =>
   text.toLowerCase().replace(/\s+/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
+const customMapStyle = [
+  {
+    featureType: 'road.arterial',
+    stylers: [{ visibility: 'off' }],
+  },
+  {
+    featureType: 'road.highway',
+    elementType: 'labels',
+    stylers: [{ visibility: 'off' }],
+  },
+  {
+    featureType: 'road.local',
+    stylers: [{ visibility: 'off' }],
+  },
+];
+
 const MapScreen: React.FC = () => {
   const router = useRouter();
   const mapRef = useRef<MapView>(null);
+
   const [places, setPlaces] = useState<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
   const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchPlaces = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch(`${BASE_URL}/places`);
-        const data = await res.json();
-        setPlaces(data);
+        const [placesRes, eventsRes] = await Promise.all([
+          fetch(`${BASE_URL}/places`),
+          fetch(`${BASE_URL}/events`),
+        ]);
+
+        const [placesData, eventsData] = await Promise.all([
+          placesRes.json(),
+          eventsRes.json(),
+        ]);
+
+        setPlaces(placesData);
+        setEvents(eventsData);
       } catch (error) {
-        console.error('Failed to fetch places', error);
+        console.error('❌ Error fetching map data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPlaces();
+    fetchData();
   }, []);
 
-  const filteredMarkers = places.filter((item) =>
+  const filteredPlaces = places.filter((item) =>
     normalize(item.name).includes(normalize(searchText))
   );
 
-  const handleMarkerPress = (item: any) => {
-    router.push({
-      pathname: '/destination',
-      params: { ...item },
-    });
+  const handlePlacePress = (item: any) => {
+    router.push({ pathname: '/destination', params: { ...item } });
   };
+
+  // const handleEventPress = (item: any) => {
+  //   router.push({ pathname: '/event', params: { ...item } });
+  // };
 
   if (loading) {
     return (
@@ -64,7 +92,10 @@ const MapScreen: React.FC = () => {
     <View style={{ flex: 1 }}>
       <MapView
         ref={mapRef}
+        provider={PROVIDER_GOOGLE}
         style={{ flex: 1 }}
+        customMapStyle={customMapStyle}
+        showsUserLocation
         initialRegion={{
           latitude: 44.4268,
           longitude: 26.1025,
@@ -72,20 +103,38 @@ const MapScreen: React.FC = () => {
           longitudeDelta: 0.08,
         }}
       >
-        {filteredMarkers.map((item, index) => (
+        {/* 📍 Locuri */}
+        {filteredPlaces.map((item, index) => (
           <Marker
-            key={index}
+            key={`place-${index}`}
             coordinate={{
               latitude: item.latitude,
               longitude: item.longitude,
             }}
             title={item.name}
-            onPress={() => handleMarkerPress(item)}
+            description={item.types?.[0] || item.address}
+            pinColor="#1f2937" // gri închis pentru locuri
+            // onPress={() => handlePlacePress(item)}
+          />
+        ))}
+
+        {/* 📅 Evenimente */}
+        {events.map((ev, index) => (
+          <Marker
+            key={`event-${index}`}
+            coordinate={{
+              latitude: ev.latitude,
+              longitude: ev.longitude,
+            }}
+            title={ev.title}
+            description={new Date(ev.date).toLocaleString()}
+            pinColor="#2563eb" // albastru pentru evenimente
+            // onPress={() => handleEventPress(ev)}
           />
         ))}
       </MapView>
 
-      {/* Back Button */}
+      {/* 🔙 Back Button */}
       <SafeAreaView
         style={{
           position: 'absolute',
@@ -100,7 +149,7 @@ const MapScreen: React.FC = () => {
         <TouchableOpacity
           onPress={() => router.back()}
           style={{
-            backgroundColor: 'rgba(255,255,255,0.5)',
+            backgroundColor: 'rgba(0,0,0,0.6)',
             padding: 10,
             borderRadius: 999,
             alignSelf: 'flex-start',
@@ -110,32 +159,42 @@ const MapScreen: React.FC = () => {
         </TouchableOpacity>
       </SafeAreaView>
 
-      {/* Search Bar */}
+      {/* 🔍 Search (pentru locuri, nu evenimente) */}
       <View
         style={{
           position: 'absolute',
-          top: height / 2 - 36,
-          left: 24,
-          right: 24,
+          top: 60,
+          left: 16,
+          right: 16,
           zIndex: 10,
         }}
       >
         <View
           style={{
-            backgroundColor: 'rgba(255,255,255,0.5)',
-            paddingHorizontal: 20,
-            paddingVertical: 12,
+            backgroundColor: '#f3f4f6',
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 16,
+            paddingVertical: 10,
             borderRadius: 999,
+            shadowColor: '#000',
+            shadowOpacity: 0.1,
+            shadowOffset: { width: 0, height: 2 },
+            shadowRadius: 4,
+            elevation: 4,
           }}
         >
+          <Feather name="search" size={20} color="#6b7280" />
           <TextInput
             placeholder="Search places..."
+            placeholderTextColor="#6b7280"
             value={searchText}
             onChangeText={setSearchText}
-            placeholderTextColor="white"
             style={{
+              marginLeft: 10,
+              flex: 1,
               fontSize: 16,
-              color: 'white',
+              color: '#1f2937',
             }}
           />
         </View>

@@ -4,6 +4,7 @@ import { Pool } from "pg";
 import "dotenv/config";
 import { fetchIaBiletEvents } from "./scrapers/iaBilet.js";
 import cron from "node-cron";
+import fetch from 'node-fetch';
 
 const app = express();
 app.use(cors());
@@ -17,46 +18,81 @@ const pool = new Pool({
   port: 5432,
 });
 
+async function geocodeAddress(address) {
+  const apiKey = process.env.GOOGLE_GEOCODING_API_KEY;
+  if (!address || !apiKey) return null;
+
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`;
+
+  const res = await fetch(url);
+  const data = await res.json();
+
+  if (data.status === 'OK') {
+    const loc = data.results[0].geometry.location;
+    return { latitude: loc.lat, longitude: loc.lng };
+  }
+
+  return null;
+}
+
 async function importEvents() {
-  const events = await fetchIaBiletEvents();
+  console.log('📥 Încep importul de evenimente (IaBilet)...');
+
+  const iaBiletEvents = await fetchIaBiletEvents();
+  const source = 'iabilet';
 
   const today = new Date();
   const from = new Date(today);
   const to = new Date(today);
-  from.setDate(from.getDate() - 1); // ieri
-  to.setDate(to.getDate() + 3); // peste 3 zile
+  from.setDate(from.getDate() - 1);
+  to.setDate(to.getDate() + 3);
 
-  await pool.query(`DELETE FROM events WHERE date < $1 OR date > $2`, [
-    from.toISOString(),
-    to.toISOString(),
-  ]);
+  // Șterge evenimentele în afara intervalului
+  await pool.query(
+    `DELETE FROM events WHERE date < $1 OR date > $2`,
+    [from.toISOString(), to.toISOString()]
+  );
 
   let inserted = 0;
 
-  for (const ev of events) {
+  for (const ev of iaBiletEvents) {
     if (!ev.date) continue;
 
     const eventDate = new Date(ev.date);
     if (eventDate < from || eventDate > to) continue;
 
-    const exists = await pool.query(
-      "SELECT 1 FROM events WHERE title = $1 AND date = $2",
-      [ev.title, ev.date],
-    );
-    if (exists.rowCount > 0) continue;
+    // 🧭 Geocode only if lat/lng is missing
+    let latitude = ev.latitude;
+    let longitude = ev.longitude;
+
+    if (!latitude || !longitude) {
+      const coords = await geocodeAddress(ev.location);
+      if (!coords) continue;
+      latitude = coords.latitude;
+      longitude = coords.longitude;
+    }
 
     await pool.query(
-      `INSERT INTO events (title, date, location, url, image_url)
-      VALUES ($1, $2, $3, $4, $5)
-      ON CONFLICT (title, date) DO NOTHING`,
-      [ev.title, ev.date, ev.location, ev.url, ev.image_url],
+      `INSERT INTO events (title, date, location, url, image_url, latitude, longitude, source)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       ON CONFLICT (title, date) DO NOTHING`,
+      [
+        ev.title,
+        ev.date,
+        ev.location,
+        ev.url,
+        ev.image_url,
+        latitude,
+        longitude,
+        source,
+      ]
     );
 
-    console.log("✅ Event added:", ev.title);
     inserted++;
+    console.log(`✅ Adăugat: ${ev.title}`);
   }
 
-  console.log(`📦 ${inserted} evenimente salvate`);
+  console.log(`📦 Total evenimente salvate: ${inserted}`);
 }
 
 cron.schedule("0 6 * * *", async () => {
