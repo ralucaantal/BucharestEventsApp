@@ -6,7 +6,6 @@ export async function fetchIaBiletEvents() {
   const page = await browser.newPage();
   await page.goto(url, { waitUntil: 'networkidle2' });
 
-  // Scroll pentru a încărca mai multe evenimente
   for (let i = 0; i < 5; i++) {
     await page.evaluate(() => window.scrollBy(0, window.innerHeight));
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -35,13 +34,12 @@ export async function fetchIaBiletEvents() {
       }
     });
 
-    console.log(`📦 ${list.length} evenimente găsite pe iabilet.ro`)  ;
+    console.log(`📦 ${list.length} evenimente găsite pe iabilet.ro`);
     return list;
   });
 
   await browser.close();
 
-  // Convertim datele în format ISO cu anul actual
   const formattedEvents = events.map(ev => {
     const parsedDate = parseRomanianDate(ev.dateRaw);
     return {
@@ -50,10 +48,24 @@ export async function fetchIaBiletEvents() {
     };
   });
 
-  return formattedEvents;
+  const today = new Date();
+  const targetDates = [-1, 0, 1, 2, 3].map(offset => {
+    const date = new Date(today);
+    date.setDate(today.getDate() + offset);
+    date.setHours(0, 0, 0, 0);
+    return date.getTime();
+  });
+
+  const filteredEvents = formattedEvents.filter(ev => {
+    if (!ev.date) return false;
+    const eventDate = new Date(ev.date);
+    eventDate.setHours(0, 0, 0, 0);
+    return targetDates.includes(eventDate.getTime());
+  });
+
+  return filteredEvents;
 }
 
-// 📅 Conversie dată "10 mai" -> "2025-05-10T19:00:00Z"
 function parseRomanianDate(str) {
   const months = {
     ian: 0, februarie: 1, feb: 1, mar: 2, martie: 2, apr: 3, mai: 4,

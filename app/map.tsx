@@ -3,11 +3,11 @@ import {
   View,
   TextInput,
   TouchableOpacity,
-  Dimensions,
   ActivityIndicator,
   Text,
+  Dimensions,
 } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker } from 'react-native-maps';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -17,22 +17,6 @@ const { width, height } = Dimensions.get('window');
 
 const normalize = (text: string) =>
   text.toLowerCase().replace(/\s+/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-
-const customMapStyle = [
-  {
-    featureType: 'road.arterial',
-    stylers: [{ visibility: 'off' }],
-  },
-  {
-    featureType: 'road.highway',
-    elementType: 'labels',
-    stylers: [{ visibility: 'off' }],
-  },
-  {
-    featureType: 'road.local',
-    stylers: [{ visibility: 'off' }],
-  },
-];
 
 const MapScreen: React.FC = () => {
   const router = useRouter();
@@ -50,16 +34,14 @@ const MapScreen: React.FC = () => {
           fetch(`${BASE_URL}/places`),
           fetch(`${BASE_URL}/events`),
         ]);
-
         const [placesData, eventsData] = await Promise.all([
           placesRes.json(),
           eventsRes.json(),
         ]);
-
         setPlaces(placesData);
         setEvents(eventsData);
       } catch (error) {
-        console.error('❌ Error fetching map data:', error);
+        console.error('❌ Error fetching data:', error);
       } finally {
         setLoading(false);
       }
@@ -71,14 +53,6 @@ const MapScreen: React.FC = () => {
   const filteredPlaces = places.filter((item) =>
     normalize(item.name).includes(normalize(searchText))
   );
-
-  const handlePlacePress = (item: any) => {
-    router.push({ pathname: '/destination', params: { ...item } });
-  };
-
-  // const handleEventPress = (item: any) => {
-  //   router.push({ pathname: '/event', params: { ...item } });
-  // };
 
   if (loading) {
     return (
@@ -92,9 +66,7 @@ const MapScreen: React.FC = () => {
     <View style={{ flex: 1 }}>
       <MapView
         ref={mapRef}
-        provider={PROVIDER_GOOGLE}
         style={{ flex: 1 }}
-        customMapStyle={customMapStyle}
         showsUserLocation
         initialRegion={{
           latitude: 44.4268,
@@ -103,49 +75,27 @@ const MapScreen: React.FC = () => {
           longitudeDelta: 0.08,
         }}
       >
-        {/* 📍 Locuri */}
         {filteredPlaces.map((item, index) => (
           <Marker
             key={`place-${index}`}
-            coordinate={{
-              latitude: item.latitude,
-              longitude: item.longitude,
-            }}
+            coordinate={{ latitude: item.latitude, longitude: item.longitude }}
             title={item.name}
             description={item.types?.[0] || item.address}
-            pinColor="#1f2937" // gri închis pentru locuri
-            // onPress={() => handlePlacePress(item)}
+            pinColor="#1f2937"
           />
         ))}
-
-        {/* 📅 Evenimente */}
         {events.map((ev, index) => (
           <Marker
             key={`event-${index}`}
-            coordinate={{
-              latitude: ev.latitude,
-              longitude: ev.longitude,
-            }}
+            coordinate={{ latitude: ev.latitude, longitude: ev.longitude }}
             title={ev.title}
             description={new Date(ev.date).toLocaleString()}
-            pinColor="#2563eb" // albastru pentru evenimente
-            // onPress={() => handleEventPress(ev)}
+            pinColor="#2563eb"
           />
         ))}
       </MapView>
 
-      {/* 🔙 Back Button */}
-      <SafeAreaView
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 20,
-          paddingHorizontal: 16,
-          paddingTop: 8,
-        }}
-      >
+      <SafeAreaView style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20, padding: 16 }}>
         <TouchableOpacity
           onPress={() => router.back()}
           style={{
@@ -159,16 +109,7 @@ const MapScreen: React.FC = () => {
         </TouchableOpacity>
       </SafeAreaView>
 
-      {/* 🔍 Search (pentru locuri, nu evenimente) */}
-      <View
-        style={{
-          position: 'absolute',
-          top: 60,
-          left: 16,
-          right: 16,
-          zIndex: 10,
-        }}
-      >
+      <View style={{ position: 'absolute', top: 60, left: 16, right: 16, zIndex: 10 }}>
         <View
           style={{
             backgroundColor: '#f3f4f6',
@@ -190,12 +131,7 @@ const MapScreen: React.FC = () => {
             placeholderTextColor="#6b7280"
             value={searchText}
             onChangeText={setSearchText}
-            style={{
-              marginLeft: 10,
-              flex: 1,
-              fontSize: 16,
-              color: '#1f2937',
-            }}
+            style={{ marginLeft: 10, flex: 1, fontSize: 16, color: '#1f2937' }}
           />
         </View>
       </View>
