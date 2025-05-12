@@ -1,32 +1,53 @@
-import puppeteer from 'puppeteer';
+import puppeteer from "puppeteer";
 
 export async function fetchEventimEvents() {
-  const url = 'https://www.eventim.ro/ro/venues/bucuresti/city.html';
-  const browser = await puppeteer.launch({ headless: true });
+  const url = "https://www.eventim.ro/ro/venues/bucuresti/city.html";
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
   const page = await browser.newPage();
-  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.goto(url, {
+    waitUntil: "domcontentloaded",
+    timeout: 60000, // 60 secunde
+  });
 
-  // Scroll automat (pentru încărcare completă)
+  // Scroll pentru a încărca toate evenimentele
   for (let i = 0; i < 6; i++) {
     await page.evaluate(() => window.scrollBy(0, window.innerHeight));
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 
   const events = await page.evaluate(() => {
-    const items = document.querySelectorAll('.event-box');
     const list = [];
+    const items = document.querySelectorAll(".m-eventListItem");
 
-    items.forEach(el => {
-      const title = el.querySelector('.event-box-title')?.textContent.trim();
-      const date = el.querySelector('.event-box-date')?.textContent.trim();
-      const location = el.querySelector('.event-box-place')?.textContent.trim();
-      const link = el.querySelector('a')?.href;
-      const image = el.querySelector('img')?.src;
+    items.forEach((el) => {
+      const title = el
+        .querySelector(".m-eventListItem__title")
+        ?.textContent.trim();
+      const dateDay = el.querySelector(".a-badgeDate__day")?.textContent.trim();
+      const dateMonth = el
+        .querySelector(".a-badgeDate__mth")
+        ?.textContent.trim();
+      const time = el
+        .querySelector(".a-badgeDate__time")
+        ?.textContent.trim()
+        ?.match(/\d{2}:\d{2}/)?.[0];
+      const location = el
+        .querySelector("address")
+        ?.textContent.trim()
+        .replace(/\s+/g, " ");
+      const image = el.querySelector("img")?.src;
+      const href = el.getAttribute("href");
+      const link = href?.startsWith("/")
+        ? "https://www.eventim.ro" + href
+        : href;
 
-      if (title && date && link) {
+      if (title && dateDay && dateMonth) {
         list.push({
           title,
-          dateRaw: date, // Ex: "19.05.2024, 20:00"
+          dateRaw: `${dateDay} ${dateMonth} ${time || "19:00"}`,
           location,
           url: link,
           image_url: image,
@@ -39,25 +60,49 @@ export async function fetchEventimEvents() {
 
   await browser.close();
 
-  // Convertim datele în format ISO
-  const formatted = events.map(ev => ({
+  const formatted = events.map((ev) => ({
     ...ev,
     date: parseEventimDate(ev.dateRaw),
   }));
 
-  return formatted;
+  const filtered = filterEventsByDate(formatted);
+  return filtered;
 }
 
+// 📅 "14 mai 19:00" => ISO string
 function parseEventimDate(str) {
-  try {
-    const regex = /(\d{2})\.(\d{2})\.(\d{4}),?\s*(\d{2}):(\d{2})?/;
-    const match = str.match(regex);
-    if (!match) return null;
+  const months = {
+    ian: 0,
+    feb: 1,
+    martie: 2,
+    mar: 2,
+    apr: 3,
+    mai: 4,
+    iun: 5,
+    iul: 6,
+    aug: 7,
+    sept: 8,
+    sep: 8,
+    oct: 9,
+    nov: 10,
+    dec: 11,
+  };
 
-    const [_, day, month, year, hour = '19', minute = '00'] = match;
+  try {
+    const dateMatch = str.toLowerCase().match(/(\d{1,2})\s+([a-zăîșț]+)/i);
+    if (!dateMatch) return null;
+    const [, day, monthName] = dateMatch;
+
+    const timeMatch = str.match(/(\d{2}):(\d{2})/);
+    const [, hour = "19", minute = "00"] = timeMatch || [];
+
+    const month = months[monthName];
+    if (month === undefined || !day) return null;
+
+    const year = new Date().getFullYear();
     const date = new Date(
-      Number(year),
-      Number(month) - 1,
+      year,
+      month,
       Number(day),
       Number(hour),
       Number(minute)
@@ -66,4 +111,22 @@ function parseEventimDate(str) {
   } catch {
     return null;
   }
+}
+
+// 🔍 Filtrare: ieri → peste 3 zile
+function filterEventsByDate(events) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const targetDates = [-1, 0, 1, 2, 3].map((offset) => {
+    const d = new Date(today);
+    d.setDate(today.getDate() + offset);
+    return d.toISOString().split("T")[0];
+  });
+
+  return events.filter((ev) => {
+    if (!ev.date) return false;
+    const date = new Date(ev.date).toISOString().split("T")[0];
+    return targetDates.includes(date);
+  });
 }
