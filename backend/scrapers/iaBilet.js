@@ -8,7 +8,7 @@ export async function fetchIaBiletEvents() {
 
   // Scroll pentru a încărca mai multe evenimente
   let previousHeight;
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 30; i++) {
     previousHeight = await page.evaluate("document.body.scrollHeight");
     await page.evaluate("window.scrollTo(0, document.body.scrollHeight)");
     await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -78,7 +78,6 @@ export async function fetchIaBiletEvents() {
 
   const to = new Date(today);
   to.setDate(to.getDate() + 3);
-  to.setHours(23, 59, 59, 999);
 
   return results.filter((ev) => {
     const eventDate = new Date(ev.date);
@@ -111,8 +110,6 @@ function parseRomanianDateWithTime(str, time = "19:00") {
     const mm = String(minute || 0).padStart(2, "0");
 
     const isoLike = `${yyyy}-${MM}-${dd}T${hh}:${mm}:00`;
-
-    console.log(`📆 ${str} @ ${time} → ${isoLike} (fără conversie UTC)`);
 
     return isoLike;
   } catch (err) {
