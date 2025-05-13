@@ -4,16 +4,43 @@ export async function fetchIaBiletEvents() {
   const url = "https://www.iabilet.ro/bilete-in-bucuresti/";
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
+
+  // Forțăm versiunea desktop
+  await page.setUserAgent(
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+  );
   await page.goto(url, { waitUntil: "networkidle2" });
 
-  // Scroll pentru a încărca mai multe evenimente
-  let previousHeight;
-  for (let i = 0; i < 30; i++) {
-    previousHeight = await page.evaluate("document.body.scrollHeight");
-    await page.evaluate("window.scrollTo(0, document.body.scrollHeight)");
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    const newHeight = await page.evaluate("document.body.scrollHeight");
-    if (newHeight === previousHeight) break;
+  let loadMoreTries = 0;
+  while (loadMoreTries < 20) {
+    const button = await page.$("a.btn-load-more");
+
+    if (!button) {
+      console.log("✅ Nu mai există butonul 'Mai mult'.");
+      break;
+    }
+
+    console.log(`🟡 Click pe 'Mai mult' (${loadMoreTries + 1})`);
+
+    const previousCount = await page.$$eval(
+      '[data-event-list="item"]',
+      (els) => els.length
+    );
+
+    await button.click();
+    await page.waitForTimeout(1500);
+
+    await page.waitForFunction(
+      (prev) => {
+        return (
+          document.querySelectorAll('[data-event-list="item"]').length > prev
+        );
+      },
+      {},
+      previousCount
+    );
+
+    loadMoreTries++;
   }
 
   const events = await page.evaluate(() => {
@@ -22,9 +49,15 @@ export async function fetchIaBiletEvents() {
 
     items.forEach((el) => {
       const title = el.querySelector(".title span")?.textContent.trim();
-      const dateDay = el.querySelector(".date-start .date-day")?.textContent.trim();
-      const dateMonth = el.querySelector(".date-start .date-month")?.textContent.trim();
-      const location = el.querySelector(".location .venue span")?.textContent.trim();
+      const dateDay = el
+        .querySelector(".date-start .date-day")
+        ?.textContent.trim();
+      const dateMonth = el
+        .querySelector(".date-start .date-month")
+        ?.textContent.trim();
+      const location = el
+        .querySelector(".location .venue span")
+        ?.textContent.trim();
       const image = el.querySelector("img")?.src;
       const link = el.querySelector(".title a")?.href;
 
@@ -44,11 +77,13 @@ export async function fetchIaBiletEvents() {
 
   const results = [];
 
-  // Pentru fiecare eveniment, extragem ora din pagina individuală
   for (const ev of events) {
     const detailPage = await browser.newPage();
     try {
-      await detailPage.goto(ev.url, { waitUntil: "domcontentloaded", timeout: 15000 });
+      await detailPage.goto(ev.url, {
+        waitUntil: "domcontentloaded",
+        timeout: 15000,
+      });
 
       const time = await detailPage.evaluate(() => {
         const text = document.body.innerText.toLowerCase();
@@ -70,7 +105,6 @@ export async function fetchIaBiletEvents() {
 
   await browser.close();
 
-  // Filtrare: ieri - +3 zile
   const today = new Date();
   const from = new Date(today);
   from.setDate(from.getDate() - 1);
@@ -78,6 +112,7 @@ export async function fetchIaBiletEvents() {
 
   const to = new Date(today);
   to.setDate(to.getDate() + 3);
+  to.setHours(23, 59, 59, 999);
 
   return results.filter((ev) => {
     const eventDate = new Date(ev.date);
@@ -87,9 +122,21 @@ export async function fetchIaBiletEvents() {
 
 function parseRomanianDateWithTime(str, time = "19:00") {
   const months = {
-    ian: 0, februarie: 1, feb: 1, mar: 2, martie: 2,
-    apr: 3, mai: 4, iun: 5, iul: 6, aug: 7,
-    sep: 8, sept: 8, oct: 9, nov: 10, dec: 11,
+    ian: 0,
+    februarie: 1,
+    feb: 1,
+    mar: 2,
+    martie: 2,
+    apr: 3,
+    mai: 4,
+    iun: 5,
+    iul: 6,
+    aug: 7,
+    sep: 8,
+    sept: 8,
+    oct: 9,
+    nov: 10,
+    dec: 11,
   };
 
   try {
