@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   TextInput,
@@ -7,21 +7,23 @@ import {
   KeyboardAvoidingView,
   Platform,
   Text,
-} from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
-import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
-import { BASE_URL } from '../constants';
+  Image,
+} from "react-native";
+import MapView, { Marker } from "react-native-maps";
+import { useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Feather } from "@expo/vector-icons";
+import { BASE_URL } from "../constants";
+import { theme } from '../theme';
 
 const normalize = (text: string): string =>
   text
     .toLowerCase()
     .trim()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // elimină diacritice
-    .replace(/[^\w\s]/gi, '')        // elimină caractere speciale
-    .replace(/\s+/g, ' ');           // normalizează spațiile
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // elimină diacritice
+    .replace(/[^\w\s]/gi, "") // elimină caractere speciale
+    .replace(/\s+/g, " "); // normalizează spațiile
 
 export default function MapScreen() {
   const router = useRouter();
@@ -44,30 +46,38 @@ export default function MapScreen() {
 
   const [places, setPlaces] = useState<Place[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
-  const [searchText, setSearchText] = useState('');
+  const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(true);
+  const [weather, setWeather] = useState<{
+    temp: number;
+    description: string;
+    icon: string;
+  } | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
     const fetchData = async () => {
       try {
-        const [placesRes, eventsRes] = await Promise.all([
+        const [placesRes, eventsRes, weatherRes] = await Promise.all([
           fetch(`${BASE_URL}/places`),
           fetch(`${BASE_URL}/events`),
+          fetch(`${BASE_URL}/current-weather`),
         ]);
 
-        const [placesData, eventsData] = await Promise.all([
+        const [placesData, eventsData, weatherData] = await Promise.all([
           placesRes.json(),
           eventsRes.json(),
+          weatherRes.json(),
         ]);
 
         if (isMounted) {
           setPlaces(placesData);
           setEvents(eventsData);
+          setWeather(weatherData);
         }
       } catch (error) {
-        console.error('❌ Error fetching map data:', error);
+        console.error("❌ Error fetching data:", error);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -81,27 +91,26 @@ export default function MapScreen() {
 
   const text = normalize(searchText);
 
-  const filteredPlaces = places.filter(item => {
+  const filteredPlaces = places.filter((item) => {
     const name = normalize(item.name);
     return (
-      typeof item.latitude === 'number' &&
-      typeof item.longitude === 'number' &&
+      typeof item.latitude === "number" &&
+      typeof item.longitude === "number" &&
       (name.startsWith(text) ||
         name.includes(text) ||
-        text.split(' ').every(word => name.includes(word)))
+        text.split(" ").every((word) => name.includes(word)))
     );
   });
 
   const validEvents = events.filter(
-    ev =>
-      typeof ev.latitude === 'number' &&
-      typeof ev.longitude === 'number' &&
+    (ev) =>
+      typeof ev.latitude === "number" &&
+      typeof ev.longitude === "number" &&
       ev.date
   );
 
   const noResults = searchText && filteredPlaces.length === 0;
 
-  // recentrare harta pe primul loc filtrat
   useEffect(() => {
     if (searchText && filteredPlaces.length > 0 && mapRef.current) {
       const { latitude, longitude } = filteredPlaces[0];
@@ -116,14 +125,16 @@ export default function MapScreen() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" color="#3b82f6" />
       </View>
     );
   }
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <View style={{ flex: 1 }}>
         <MapView
           ref={mapRef}
@@ -134,8 +145,7 @@ export default function MapScreen() {
             longitude: 26.1025,
             latitudeDelta: 0.08,
             longitudeDelta: 0.08,
-          }}
-        >
+          }}>
           {filteredPlaces.map((item, index) => (
             <Marker
               key={`place-${index}`}
@@ -163,61 +173,90 @@ export default function MapScreen() {
           ))}
         </MapView>
 
+        {weather && (
+          <View
+            style={{
+              position: "absolute",
+              bottom: 30,
+              right: 20,
+              backgroundColor: theme.text,
+              padding: 8,
+              borderRadius: 12,
+              alignItems: "center",
+              flexDirection: "row",
+              zIndex: 50,
+              shadowColor: "#000",
+              shadowOpacity: 0.1,
+              shadowOffset: { width: 0, height: 2 },
+              shadowRadius: 4,
+              elevation: 4,
+            }}>
+            <Image
+              source={{ uri: weather.icon }}
+              style={{ width: 40, height: 40, marginRight: 8 }}
+            />
+            <View>
+              <Text style={{ fontWeight: "600", color: "#111827" }}>
+                {Math.round(weather.temp)}°C
+              </Text>
+              <Text style={{ fontSize: 12, color: "#374151" }}>
+                {weather.description}
+              </Text>
+            </View>
+          </View>
+        )}
+
         {noResults && (
           <View
             style={{
-              position: 'absolute',
+              position: "absolute",
               top: 130,
-              alignSelf: 'center',
-              backgroundColor: 'rgba(0,0,0,0.7)',
+              alignSelf: "center",
+              backgroundColor: "rgba(0,0,0,0.7)",
               paddingHorizontal: 12,
               paddingVertical: 6,
               borderRadius: 8,
-            }}
-          >
-            <Text style={{ color: 'white' }}>No places found.</Text>
+            }}>
+            <Text style={{ color: "white" }}>No places found.</Text>
           </View>
         )}
 
         <SafeAreaView
           style={{
-            position: 'absolute',
+            position: "absolute",
             top: 0,
             left: 0,
             right: 0,
             zIndex: 20,
             paddingHorizontal: 16,
             paddingTop: 16,
-          }}
-        >
+          }}>
           <TouchableOpacity
             onPress={() => router.back()}
             style={{
-              backgroundColor: 'rgba(0,0,0,0.6)',
+              backgroundColor: "rgba(0,0,0,0.6)",
               padding: 10,
               borderRadius: 999,
-              alignSelf: 'flex-start',
+              alignSelf: "flex-start",
               marginBottom: 12,
-            }}
-          >
+            }}>
             <Feather name="chevron-left" size={28} color="white" />
           </TouchableOpacity>
 
           <View
             style={{
-              backgroundColor: '#f3f4f6',
-              flexDirection: 'row',
-              alignItems: 'center',
+              backgroundColor: "#f3f4f6",
+              flexDirection: "row",
+              alignItems: "center",
               paddingHorizontal: 16,
               paddingVertical: 10,
               borderRadius: 999,
-              shadowColor: '#000',
+              shadowColor: "#000",
               shadowOpacity: 0.1,
               shadowOffset: { width: 0, height: 2 },
               shadowRadius: 4,
               elevation: 4,
-            }}
-          >
+            }}>
             <Feather name="search" size={20} color="#6b7280" />
             <TextInput
               placeholder="Search places..."
@@ -228,7 +267,7 @@ export default function MapScreen() {
                 marginLeft: 10,
                 flex: 1,
                 fontSize: 16,
-                color: '#1f2937',
+                color: "#1f2937",
               }}
             />
           </View>
