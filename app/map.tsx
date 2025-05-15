@@ -14,7 +14,7 @@ import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { BASE_URL } from "../constants";
-import { theme } from '../theme';
+import { theme } from "../theme";
 
 const normalize = (text: string): string =>
   text
@@ -24,6 +24,29 @@ const normalize = (text: string): string =>
     .replace(/[\u0300-\u036f]/g, "") // elimină diacritice
     .replace(/[^\w\s]/gi, "") // elimină caractere speciale
     .replace(/\s+/g, " "); // normalizează spațiile
+
+function getWeatherEmoji(description: string) {
+  const desc = description.toLowerCase();
+
+  if (desc.includes("clear")) return "☀️";
+  if (desc.includes("clouds")) return "☁️";
+  if (desc.includes("few clouds")) return "🌤️";
+  if (desc.includes("scattered clouds")) return "🌥️";
+  if (desc.includes("broken clouds")) return "☁️";
+  if (desc.includes("overcast")) return "☁️";
+  if (desc.includes("rain")) return "🌧️";
+  if (desc.includes("drizzle")) return "🌦️";
+  if (desc.includes("thunderstorm")) return "⛈️";
+  if (desc.includes("snow")) return "❄️";
+  if (desc.includes("mist")) return "🌫️";
+  if (desc.includes("fog")) return "🌁";
+  if (desc.includes("haze")) return "🌫️";
+  if (desc.includes("smoke")) return "💨";
+  if (desc.includes("dust") || desc.includes("sand")) return "🌪️";
+  if (desc.includes("tornado")) return "🌪️";
+
+  return "❓";
+}
 
 export default function MapScreen() {
   const router = useRouter();
@@ -191,16 +214,9 @@ export default function MapScreen() {
               shadowRadius: 4,
               elevation: 4,
             }}>
-            <Image
-              source={{ uri: weather.icon }}
-              style={{ width: 40, height: 40, marginRight: 8 }}
-            />
             <View>
               <Text style={{ fontWeight: "600", color: "#111827" }}>
-                {Math.round(weather.temp)}°C
-              </Text>
-              <Text style={{ fontSize: 12, color: "#374151" }}>
-                {weather.description}
+                {getWeatherEmoji(weather.description)} {Math.round(weather.temp)}°C
               </Text>
             </View>
           </View>
