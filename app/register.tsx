@@ -21,11 +21,34 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width, height } = Dimensions.get("window");
 
-const LoginScreen: React.FC = () => {
+const RegisterScreen: React.FC = () => {
   const router = useRouter();
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  const handleRegister = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        await AsyncStorage.setItem("token", data.token);
+        await AsyncStorage.setItem("user", JSON.stringify(data.user));
+        router.replace("/home");
+      } else {
+        alert(data.error || "Registration failed");
+      }
+    } catch (err) {
+      alert("Eroare la înregistrare");
+    }
+  };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -36,6 +59,7 @@ const LoginScreen: React.FC = () => {
           contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled">
           <View style={{ flex: 1 }}>
+            {/* Background */}
             <Image
               source={require("../assets/images/login.png")}
               style={{
@@ -45,7 +69,6 @@ const LoginScreen: React.FC = () => {
                 resizeMode: "cover",
               }}
             />
-
             <LinearGradient
               colors={["transparent", "rgba(3,105,161,0.85)"]}
               start={{ x: 0.5, y: 0 }}
@@ -58,6 +81,7 @@ const LoginScreen: React.FC = () => {
               }}
             />
 
+            {/* Back button */}
             <SafeAreaView
               style={{
                 position: "absolute",
@@ -80,6 +104,7 @@ const LoginScreen: React.FC = () => {
               </TouchableOpacity>
             </SafeAreaView>
 
+            {/* Form content */}
             <View
               style={{
                 flex: 1,
@@ -88,16 +113,16 @@ const LoginScreen: React.FC = () => {
                 paddingBottom: 40,
                 zIndex: 10,
               }}>
+              {/* Header */}
               <View style={{ alignItems: "center", marginBottom: 20 }}>
                 <Text
                   style={{
                     fontSize: width * 0.08,
-                    lineHeight: width * 0.095,
                     fontWeight: "bold",
                     color: "white",
                     textAlign: "center",
                   }}>
-                  Welcome back 👋
+                  Create Account
                 </Text>
                 <Text
                   style={{
@@ -107,26 +132,25 @@ const LoginScreen: React.FC = () => {
                     marginTop: 6,
                     textAlign: "center",
                   }}>
-                  Sign in to explore Bucharest
+                  Join the Bucharest experience
                 </Text>
               </View>
 
+              {/* Inputs */}
               <View style={{ gap: 20, marginBottom: 24 }}>
                 <TextInput
-                  placeholder="Email / Username"
+                  placeholder="Username"
+                  placeholderTextColor="#e5e7eb"
+                  value={username}
+                  onChangeText={setUsername}
+                  style={inputStyle}
+                />
+                <TextInput
+                  placeholder="Email"
                   placeholderTextColor="#e5e7eb"
                   value={email}
                   onChangeText={setEmail}
-                  style={{
-                    backgroundColor: "rgba(255,255,255,0.2)",
-                    borderColor: "rgba(255,255,255,0.3)",
-                    borderWidth: 1,
-                    borderRadius: 999,
-                    paddingHorizontal: 24,
-                    paddingVertical: 12,
-                    color: "white",
-                    fontSize: 16,
-                  }}
+                  style={inputStyle}
                 />
                 <View style={{ position: "relative" }}>
                   <TextInput
@@ -135,19 +159,8 @@ const LoginScreen: React.FC = () => {
                     secureTextEntry={!showPassword}
                     value={password}
                     onChangeText={setPassword}
-                    style={{
-                      backgroundColor: "rgba(255,255,255,0.2)",
-                      borderColor: "rgba(255,255,255,0.3)",
-                      borderWidth: 1,
-                      borderRadius: 999,
-                      paddingHorizontal: 24,
-                      paddingVertical: 12,
-                      color: "white",
-                      fontSize: 16,
-                      paddingRight: 50, // spațiu pentru iconiță
-                    }}
+                    style={[inputStyle, { paddingRight: 50 }]}
                   />
-
                   <TouchableOpacity
                     onPress={() => setShowPassword(!showPassword)}
                     style={{
@@ -164,35 +177,9 @@ const LoginScreen: React.FC = () => {
                 </View>
               </View>
 
+              {/* Register button */}
               <TouchableOpacity
-                onPress={async () => {
-                  try {
-                    const response = await fetch(`${BASE_URL}/login`, {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ email, password }),
-                    });
-
-                    const data = await response.json();
-
-                    if (response.ok) {
-                      console.log("✅ Autentificat ca:", data.user);
-
-                      // Salvează tokenul și datele utilizatorului
-                      await AsyncStorage.setItem("token", data.token);
-                      await AsyncStorage.setItem(
-                        "user",
-                        JSON.stringify(data.user)
-                      );
-
-                      router.push("/home");
-                    } else {
-                      alert(data.error || "Autentificare eșuată");
-                    }
-                  } catch (err) {
-                    alert("Eroare la autentificare");
-                  }
-                }}
+                onPress={handleRegister}
                 style={{
                   backgroundColor: "white",
                   paddingVertical: 12,
@@ -210,10 +197,11 @@ const LoginScreen: React.FC = () => {
                     fontWeight: "bold",
                     fontSize: width * 0.052,
                   }}>
-                  Log In
+                  Register
                 </Text>
               </TouchableOpacity>
 
+              {/* Social Options */}
               <View
                 style={{
                   flexDirection: "row",
@@ -221,7 +209,7 @@ const LoginScreen: React.FC = () => {
                   gap: 32,
                   marginTop: 20,
                 }}>
-                <TouchableOpacity onPress={() => alert("Continue with Google")}>
+                <TouchableOpacity onPress={() => alert("Register with Google")}>
                   <Image
                     source={require("../assets/images/icons/google.png")}
                     style={{
@@ -236,7 +224,7 @@ const LoginScreen: React.FC = () => {
 
                 {Platform.OS === "ios" && (
                   <TouchableOpacity
-                    onPress={() => alert("Continue with Apple")}>
+                    onPress={() => alert("Register with Apple")}>
                     <Image
                       source={require("../assets/images/icons/apple.png")}
                       style={{
@@ -251,22 +239,24 @@ const LoginScreen: React.FC = () => {
                 )}
               </View>
 
+              {/* Link to login */}
               <View
                 style={{
                   flexDirection: "row",
                   justifyContent: "center",
                   marginTop: 16,
                 }}>
-                <Text style={{ color: "#e5e7eb" }}>Don’t have an account?</Text>
-                <TouchableOpacity
-                  onPress={() => router.push("/register")}>
+                <Text style={{ color: "#e5e7eb" }}>
+                  Already have an account?
+                </Text>
+                <TouchableOpacity onPress={() => router.replace("/login")}>
                   <Text
                     style={{
                       color: "white",
                       fontWeight: "500",
                       marginLeft: 6,
                     }}>
-                    Register
+                    Log In
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -278,4 +268,15 @@ const LoginScreen: React.FC = () => {
   );
 };
 
-export default LoginScreen;
+const inputStyle = {
+  backgroundColor: "rgba(255,255,255,0.2)",
+  borderColor: "rgba(255,255,255,0.3)",
+  borderWidth: 1,
+  borderRadius: 999,
+  paddingHorizontal: 24,
+  paddingVertical: 12,
+  color: "white",
+  fontSize: 16,
+};
+
+export default RegisterScreen;
