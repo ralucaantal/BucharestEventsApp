@@ -178,9 +178,19 @@ app.post("/import-places", async (req, res) => {
       ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photoRef}&key=${apiKey}`
       : null;
 
+    // 🔧 DEFINEȘTE openingHours AICI!
+    const openingHours = place.opening_hours
+      ? JSON.stringify(place.opening_hours)
+      : null;
+
     await pool.query(
-      `INSERT INTO places (place_id, name, address, latitude, longitude, rating, types, photo_url, user_ratings_total)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+      `INSERT INTO places (
+      place_id, name, address, latitude, longitude, rating, types,
+      photo_url, user_ratings_total, price_level, business_status,
+      phone_number, website, opening_hours, google_maps_url
+    )
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+    ON CONFLICT (place_id) DO NOTHING`,
       [
         place.place_id,
         place.name,
@@ -191,6 +201,12 @@ app.post("/import-places", async (req, res) => {
         place.types,
         photoUrl,
         place.user_ratings_total || 0,
+        place.price_level || null,
+        place.business_status || null,
+        place.formatted_phone_number || null,
+        place.website || null,
+        openingHours,
+        `https://www.google.com/maps/place/?q=place_id:${place.place_id}`,
       ]
     );
 

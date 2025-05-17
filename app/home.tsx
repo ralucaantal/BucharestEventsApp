@@ -133,27 +133,6 @@ const HomeScreen: React.FC = () => {
 
           {/* Destinations */}
           <Destinations activeCategory={activeCategory} />
-
-          <View style={{ alignItems: "center", marginTop: 10 }}>
-            <TouchableOpacity
-              onPress={() => {
-                // Șterge eventual token, date din AsyncStorage, etc.
-                // Navighează spre ecranul de login
-                router.replace("/login"); // sau router.push('/login')
-              }}
-              style={{
-                backgroundColor: theme.bg(1),
-                paddingHorizontal: 30,
-                paddingVertical: 12,
-                borderRadius: 999,
-                marginBottom: 20,
-              }}>
-              <Text
-                style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>
-                Log Out
-              </Text>
-            </TouchableOpacity>
-          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
