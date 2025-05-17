@@ -173,7 +173,7 @@ app.post("/import-places", async (req, res) => {
 
     const photoRef = place.photos?.[0]?.photo_reference;
     const photoUrl = photoRef
-      ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${photoRef}&key=${apiKey}`
+      ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photoRef}&key=${apiKey}`
       : null;
 
     await pool.query(
