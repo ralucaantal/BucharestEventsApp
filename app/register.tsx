@@ -201,7 +201,7 @@ const RegisterScreen: React.FC = () => {
                 </Text>
               </TouchableOpacity>
 
-              {/* Social Options */}
+              {/* Social Options
               <View
                 style={{
                   flexDirection: "row",
@@ -237,7 +237,7 @@ const RegisterScreen: React.FC = () => {
                     />
                   </TouchableOpacity>
                 )}
-              </View>
+              </View> */}
 
               {/* Link to login */}
               <View

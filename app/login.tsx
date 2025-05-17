@@ -214,7 +214,7 @@ const LoginScreen: React.FC = () => {
                 </Text>
               </TouchableOpacity>
 
-              <View
+              {/* <View
                 style={{
                   flexDirection: "row",
                   justifyContent: "center",
@@ -249,7 +249,7 @@ const LoginScreen: React.FC = () => {
                     />
                   </TouchableOpacity>
                 )}
-              </View>
+              </View> */}
 
               <View
                 style={{
