@@ -5,6 +5,8 @@ import "dotenv/config";
 import { fetchIaBiletEvents } from "./scrapers/iaBilet.js";
 import cron from "node-cron";
 import fetch from "node-fetch";
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 const app = express();
 app.use(cors());
@@ -336,6 +338,79 @@ app.get("/update-data", async (req, res) => {
   } catch (err) {
     console.error("❌ Error updating data:", err);
     res.status(500).json({ error: "Failed to update data." });
+  }
+});
+
+app.post('/register', async (req, res) => {
+  const { username, email, password, role } = req.body;
+
+  if (!username || !email || !password)
+    return res.status(400).json({ error: 'Missing fields' });
+
+  try {
+    // Verifică dacă userul sau emailul există deja
+    const existing = await pool.query(
+      'SELECT 1 FROM users WHERE username = $1 OR email = $2',
+      [username, email]
+    );
+    if (existing.rowCount > 0)
+      return res.status(409).json({ error: 'Username or email already in use' });
+
+    // Hash parola
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Inserează utilizatorul
+    const result = await pool.query(
+      `INSERT INTO users (username, email, password, role)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, username, email, role`,
+      [username, email, hashedPassword, role || 'tourist']
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('❌ Error during registration:', err);
+    res.status(500).json({ error: 'Registration failed' });
+  }
+});
+
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  console.log('Login attempt:', { email, password });
+
+  if (!email || !password)
+    return res.status(400).json({ error: 'Missing credentials' });
+
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (result.rowCount === 0)
+      return res.status(401).json({ error: 'Invalid email or password' });
+
+    const user = result.rows[0];
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatch)
+      return res.status(401).json({ error: 'Invalid email or password' });
+
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+        email: user.email,
+      },
+    });
+  } catch (err) {
+    console.error('❌ Error during login:', err);
+    res.status(500).json({ error: 'Login failed' });
   }
 });
 
