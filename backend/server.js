@@ -47,7 +47,7 @@ async function importEvents() {
   const from = new Date(today);
   const to = new Date(today);
   from.setDate(from.getDate() - 1);
-  to.setDate(to.getDate() + 3);
+  to.setDate(to.getDate() + 4);
 
   // Șterge evenimentele în afara intervalului
   await pool.query(`DELETE FROM events WHERE date < $1 OR date > $2`, [
