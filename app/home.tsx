@@ -70,7 +70,7 @@ const HomeScreen: React.FC = () => {
               What do you want to do today in Bucharest?
             </Text>
           </View>
-          <TouchableOpacity onPress={() => router.push("/login")}>
+          <TouchableOpacity onPress={() => router.push("/userMenu")}>
             <Image
               source={require("../assets/images/avatar.png")}
               style={{
