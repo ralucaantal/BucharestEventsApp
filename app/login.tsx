@@ -25,6 +25,7 @@ const LoginScreen: React.FC = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -127,23 +128,40 @@ const LoginScreen: React.FC = () => {
                     fontSize: 16,
                   }}
                 />
-                <TextInput
-                  placeholder="Password"
-                  placeholderTextColor="#e5e7eb"
-                  secureTextEntry
-                  value={password}
-                  onChangeText={setPassword}
-                  style={{
-                    backgroundColor: "rgba(255,255,255,0.2)",
-                    borderColor: "rgba(255,255,255,0.3)",
-                    borderWidth: 1,
-                    borderRadius: 999,
-                    paddingHorizontal: 24,
-                    paddingVertical: 12,
-                    color: "white",
-                    fontSize: 16,
-                  }}
-                />
+                <View style={{ position: "relative" }}>
+                  <TextInput
+                    placeholder="Password"
+                    placeholderTextColor="#e5e7eb"
+                    secureTextEntry={!showPassword}
+                    value={password}
+                    onChangeText={setPassword}
+                    style={{
+                      backgroundColor: "rgba(255,255,255,0.2)",
+                      borderColor: "rgba(255,255,255,0.3)",
+                      borderWidth: 1,
+                      borderRadius: 999,
+                      paddingHorizontal: 24,
+                      paddingVertical: 12,
+                      color: "white",
+                      fontSize: 16,
+                      paddingRight: 50, // spațiu pentru iconiță
+                    }}
+                  />
+
+                  <TouchableOpacity
+                    onPress={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: "absolute",
+                      right: 16,
+                      top: 12,
+                    }}>
+                    <Feather
+                      name={showPassword ? "eye-off" : "eye"}
+                      size={22}
+                      color="#e5e7eb"
+                    />
+                  </TouchableOpacity>
+                </View>
               </View>
 
               <TouchableOpacity
