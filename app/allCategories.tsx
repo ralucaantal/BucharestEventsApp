@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,12 +8,12 @@ import {
   SafeAreaView,
   Image,
   Dimensions,
-} from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { BASE_URL } from '../constants';
-import { Feather } from '@expo/vector-icons';
+} from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { BASE_URL } from "../constants";
+import { Feather } from "@expo/vector-icons";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 type Place = {
   place_id: string;
@@ -32,148 +32,99 @@ const AllCategoriesScreen: React.FC = () => {
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
-  const [allDestinations, setAllDestinations] = useState<Place[]>([]);
   const [places, setPlaces] = useState<Place[]>([]);
-
-  useEffect(() => {
-    const fetchPlaces = async () => {
-      try {
-        const res = await fetch(`${BASE_URL}/places`);
-        const data = await res.json();
-        setAllDestinations(data);
-      } catch (error) {
-        console.error('Failed to fetch places', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPlaces();
-  }, []);
 
   useEffect(() => {
     const fetchPlaces = async () => {
       if (!category) return;
       setLoading(true);
       try {
-        const res = await fetch(`${BASE_URL}/places?category=${encodeURIComponent(category as string)}`);
+        const res = await fetch(
+          `${BASE_URL}/places?category=${encodeURIComponent(
+            category as string
+          )}`
+        );
         const data = await res.json();
         setPlaces(data);
       } catch (error) {
-        console.error('Failed to fetch places', error);
+        console.error("Failed to fetch places", error);
       } finally {
         setLoading(false);
       }
     };
-  
+
     fetchPlaces();
-  }, [category]);  
+  }, [category]);
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View className="flex-1 justify-center items-center bg-white">
         <ActivityIndicator size="large" color="#3b82f6" />
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+    <SafeAreaView className="flex-1 bg-white">
+      {/* Header */}
+      <View className="flex-row items-center px-5 mb-5">
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="p-2 bg-gray-100 rounded-full mr-3">
+          <Feather name="chevron-left" size={24} color="#1f2937" />
+        </TouchableOpacity>
+        <View>
+          <Text className="text-2xl font-bold text-gray-800">{category}</Text>
+          <Text className="text-xs text-gray-400 mt-1">
+            Discover the best places
+          </Text>
+        </View>
+      </View>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
-      >
-        {/* Header */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, marginBottom: 20 }}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={{
-              padding: 10,
-              backgroundColor: '#f3f4f6',
-              borderRadius: 999,
-              marginRight: 12,
-            }}
-          >
-            <Feather name="chevron-left" size={24} color="#1f2937" />
-          </TouchableOpacity>
-          <View>
-            <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#1f2937' }}>
-              {category}
-            </Text>
-            <Text style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>
-              Discover the best places
-            </Text>
-          </View>
-        </View>
-
+        contentContainerStyle={{ paddingBottom: 40 }}>
         {/* Places List */}
-        <View style={{ paddingHorizontal: 20 }}>
+        <View className="px-5">
           {places.map((place) => (
             <TouchableOpacity
               key={place.place_id}
               activeOpacity={0.8}
               onPress={() =>
                 router.push({
-                  pathname: '/destination',
+                  pathname: "/destination",
                   params: {
                     name: place.name,
-                    photo_url: place.photo_url ?? '',
+                    photo_url: place.photo_url ?? "",
                     rating: place.rating,
                     address: place.address,
                   },
                 })
               }
-              style={{
-                flexDirection: 'row',
-                backgroundColor: '#f3f4f6',
-                padding: 12,
-                borderRadius: 20,
-                marginBottom: 14,
-                alignItems: 'center',
-              }}
-            >
+              className="flex-row bg-gray-100 p-3 rounded-2xl mb-4 items-center">
               {place.photo_url ? (
                 <Image
                   source={{ uri: place.photo_url }}
-                  style={{
-                    width: width * 0.22,
-                    height: width * 0.22,
-                    borderRadius: 12,
-                    marginRight: 14,
-                  }}
+                  className="rounded-xl mr-4"
+                  style={{ width: width * 0.22, height: width * 0.22 }}
                   resizeMode="cover"
                 />
               ) : (
                 <View
-                  style={{
-                    width: width * 0.22,
-                    height: width * 0.22,
-                    borderRadius: 12,
-                    marginRight: 14,
-                    backgroundColor: '#d1d5db',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Text style={{ color: '#6b7280' }}>No Image</Text>
+                  className="bg-gray-300 justify-center items-center rounded-xl mr-4"
+                  style={{ width: width * 0.22, height: width * 0.22 }}>
+                  <Text className="text-gray-500">No Image</Text>
                 </View>
               )}
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#1f2937' }}>
+
+              <View className="flex-1">
+                <Text className="text-base font-bold text-gray-800">
                   {place.name}
                 </Text>
-                <Text style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>
+                <Text className="text-sm text-gray-500 mt-1">
                   {place.address}
                 </Text>
-                <Text
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 'bold',
-                    color: '#f59e0b',
-                    marginTop: 4,
-                  }}
-                >
-                  ⭐ {place.rating?.toFixed(1) ?? 'N/A'}
+                <Text className="text-sm font-bold text-amber-500 mt-1">
+                  ⭐ {place.rating?.toFixed(1) ?? "N/A"}
                 </Text>
               </View>
             </TouchableOpacity>

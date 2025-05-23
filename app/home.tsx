@@ -16,11 +16,8 @@ import Categories from "../components/categories";
 import Destinations from "../components/destinations";
 import QuickActions from "@/components/QuickActions";
 import CategorySelector from "../components/categorySelector";
-import { theme } from "../theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const { width } = Dimensions.get("window");
-const ios = Platform.OS === "ios";
+import { StatusBar } from "expo-status-bar";
 
 const HomeScreen: React.FC = () => {
   const router = useRouter();
@@ -37,7 +34,7 @@ const HomeScreen: React.FC = () => {
       } else {
         try {
           const parsed = JSON.parse(storedUser);
-          setUser(parsed); // { id, email, username, role }
+          setUser(parsed);
         } catch (e) {
           console.error("❌ Failed to parse user:", e);
         }
@@ -47,80 +44,56 @@ const HomeScreen: React.FC = () => {
   }, []);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
+    <SafeAreaView className="flex-1 bg-white">
+        <StatusBar style="dark" backgroundColor="white" />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}>
+        
         {/* Header */}
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            paddingHorizontal: 20,
-            paddingTop: 20,
-            paddingBottom: 12,
-          }}>
+        <View className="flex-row justify-between items-center px-5 pt-5 pb-3">
           <View>
-            <Text
-              style={{ fontSize: 24, fontWeight: "bold", color: "#1f2937" }}>
+            <Text className="text-2xl font-bold text-gray-800">
               Hello, {user?.username || "Explorer"}! 👋
             </Text>
-            <Text style={{ fontSize: 12, color: "#9ca3af", marginTop: 4 }}>
+            <Text className="text-xs text-gray-400 mt-1">
               What do you want to do today in Bucharest?
             </Text>
           </View>
           <TouchableOpacity onPress={() => router.push("/userMenu")}>
             <Image
               source={require("../assets/images/avatar.png")}
-              style={{
-                height: 44,
-                width: 44,
-                borderRadius: 22,
-              }}
+              className="h-11 w-11 rounded-full"
             />
           </TouchableOpacity>
         </View>
 
         {/* Search Bar */}
-        <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              backgroundColor: "#f3f4f6",
-              borderRadius: 999,
-              paddingHorizontal: 16,
-              paddingVertical: 12,
-            }}>
+        <View className="px-5 mb-4">
+          <View className="flex-row items-center bg-gray-100 rounded-full px-4 py-3">
             <Feather name="search" size={20} color="gray" />
             <TextInput
               placeholder="Search destinations..."
               placeholderTextColor="gray"
-              style={{
-                marginLeft: 10,
-                flex: 1,
-                fontSize: 16,
-                color: "#374151",
-              }}
+              className="ml-2 flex-1 text-base text-gray-700"
             />
           </View>
         </View>
 
         {/* Quick Actions */}
-        <View style={{ marginBottom: 16 }}>
+        <View className="mb-4">
           <QuickActions />
         </View>
 
         {/* Categories */}
-        <View style={{ marginBottom: 16 }}>
+        <View className="mb-4">
           <Categories />
         </View>
 
         {/* Featured Destinations */}
-        <View style={{ marginBottom: 24 }}>
-          <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
-            <Text style={{ fontSize: 18, fontWeight: "600", color: "#1f2937" }}>
+        <View className="mb-6">
+          <View className="px-5 mb-3">
+            <Text className="text-lg font-semibold text-gray-800">
               Featured Destinations
             </Text>
           </View>
