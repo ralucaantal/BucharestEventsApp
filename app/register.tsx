@@ -45,134 +45,86 @@ const RegisterScreen: React.FC = () => {
       } else {
         alert(data.error || "Registration failed");
       }
-    } catch (err) {
+    } catch {
       alert("Eroare la înregistrare");
     }
   };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}>
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1 }}
-          keyboardShouldPersistTaps="handled">
-          <View style={{ flex: 1 }}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+          <View className="flex-1">
             {/* Background */}
             <Image
               source={require("../assets/images/login.png")}
-              style={{
-                position: "absolute",
-                height: "100%",
-                width: "100%",
-                resizeMode: "cover",
-              }}
+              className="absolute w-full h-full"
+              resizeMode="cover"
             />
             <LinearGradient
               colors={["transparent", "rgba(3,105,161,0.85)"]}
               start={{ x: 0.5, y: 0 }}
               end={{ x: 0.5, y: 1 }}
-              style={{
-                position: "absolute",
-                bottom: 0,
-                width: width,
-                height: height,
-              }}
+              style={{ position: "absolute", bottom: 0, width, height }}
             />
 
             {/* Back button */}
-            <SafeAreaView
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                zIndex: 20,
-                paddingHorizontal: 16,
-                paddingTop: 8,
-              }}>
+            <SafeAreaView className="absolute top-0 left-0 right-0 z-20 px-4 pt-2">
               <TouchableOpacity
                 onPress={() => router.back()}
-                style={{
-                  backgroundColor: "rgba(255,255,255,0.5)",
-                  padding: 10,
-                  borderRadius: 999,
-                  alignSelf: "flex-start",
-                }}>
+                className="bg-white/50 p-2 rounded-full self-start"
+              >
                 <Feather name="chevron-left" size={28} color="white" />
               </TouchableOpacity>
             </SafeAreaView>
 
-            {/* Form content */}
-            <View
-              style={{
-                flex: 1,
-                justifyContent: "flex-end",
-                paddingHorizontal: 32,
-                paddingBottom: 40,
-                zIndex: 10,
-              }}>
-              {/* Header */}
-              <View style={{ alignItems: "center", marginBottom: 20 }}>
+            {/* Content */}
+            <View className="flex-1 justify-end px-8 pb-10 z-10">
+              <View className="items-center mb-5">
                 <Text
-                  style={{
-                    fontSize: width * 0.08,
-                    fontWeight: "bold",
-                    color: "white",
-                    textAlign: "center",
-                  }}>
+                  className="text-white font-bold text-center"
+                  style={{ fontSize: width * 0.08 }}
+                >
                   Create Account
                 </Text>
                 <Text
-                  style={{
-                    fontSize: width * 0.042,
-                    color: "#e5e7eb",
-                    fontWeight: "500",
-                    marginTop: 6,
-                    textAlign: "center",
-                  }}>
+                  className="text-gray-200 font-medium text-center mt-1"
+                  style={{ fontSize: width * 0.042 }}
+                >
                   Join the Bucharest experience
                 </Text>
               </View>
 
               {/* Inputs */}
-              <View style={{ gap: 20, marginBottom: 24 }}>
+              <View className="gap-5 mb-6">
                 <TextInput
                   placeholder="Username"
                   placeholderTextColor="#e5e7eb"
                   value={username}
                   onChangeText={setUsername}
-                  style={inputStyle}
+                  className="bg-white/20 border border-white/30 rounded-full px-6 py-3 text-white text-base"
                 />
                 <TextInput
                   placeholder="Email"
                   placeholderTextColor="#e5e7eb"
                   value={email}
                   onChangeText={setEmail}
-                  style={inputStyle}
+                  className="bg-white/20 border border-white/30 rounded-full px-6 py-3 text-white text-base"
                 />
-                <View style={{ position: "relative" }}>
+                <View className="relative">
                   <TextInput
                     placeholder="Password"
                     placeholderTextColor="#e5e7eb"
                     secureTextEntry={!showPassword}
                     value={password}
                     onChangeText={setPassword}
-                    style={[inputStyle, { paddingRight: 50 }]}
+                    className="bg-white/20 border border-white/30 rounded-full px-6 py-3 pr-12 text-white text-base"
                   />
                   <TouchableOpacity
                     onPress={() => setShowPassword(!showPassword)}
-                    style={{
-                      position: "absolute",
-                      right: 16,
-                      top: 12,
-                    }}>
-                    <Feather
-                      name={showPassword ? "eye-off" : "eye"}
-                      size={22}
-                      color="#e5e7eb"
-                    />
+                    className="absolute right-4 top-3"
+                  >
+                    <Feather name={showPassword ? "eye-off" : "eye"} size={22} color="#e5e7eb" />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -180,23 +132,19 @@ const RegisterScreen: React.FC = () => {
               {/* Register button */}
               <TouchableOpacity
                 onPress={handleRegister}
+                className="bg-white py-3 rounded-full shadow-md"
                 style={{
-                  backgroundColor: "white",
-                  paddingVertical: 12,
-                  borderRadius: 999,
                   shadowColor: "#000",
                   shadowOffset: { width: 0, height: 3 },
                   shadowOpacity: 0.2,
                   shadowRadius: 4,
                   elevation: 5,
-                }}>
+                }}
+              >
                 <Text
-                  style={{
-                    textAlign: "center",
-                    color: "#0284c7",
-                    fontWeight: "bold",
-                    fontSize: width * 0.052,
-                  }}>
+                  className="text-center font-bold"
+                  style={{ color: "#0284c7", fontSize: width * 0.052 }}
+                >
                   Register
                 </Text>
               </TouchableOpacity>
@@ -239,25 +187,11 @@ const RegisterScreen: React.FC = () => {
                 )}
               </View> */}
 
-              {/* Link to login */}
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "center",
-                  marginTop: 16,
-                }}>
-                <Text style={{ color: "#e5e7eb" }}>
-                  Already have an account?
-                </Text>
+              {/* Login link */}
+              <View className="flex-row justify-center mt-4">
+                <Text className="text-gray-200">Already have an account?</Text>
                 <TouchableOpacity onPress={() => router.replace("/login")}>
-                  <Text
-                    style={{
-                      color: "white",
-                      fontWeight: "500",
-                      marginLeft: 6,
-                    }}>
-                    Log In
-                  </Text>
+                  <Text className="text-white font-medium ml-2">Log In</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -266,17 +200,6 @@ const RegisterScreen: React.FC = () => {
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
-};
-
-const inputStyle = {
-  backgroundColor: "rgba(255,255,255,0.2)",
-  borderColor: "rgba(255,255,255,0.3)",
-  borderWidth: 1,
-  borderRadius: 999,
-  paddingHorizontal: 24,
-  paddingVertical: 12,
-  color: "white",
-  fontSize: 16,
 };
 
 export default RegisterScreen;

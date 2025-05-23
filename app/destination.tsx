@@ -17,7 +17,6 @@ import { theme } from '../theme';
 
 const ios = Platform.OS === 'ios';
 const topMargin = ios ? 0 : 40;
-
 const { width, height } = Dimensions.get('window');
 
 const DestinationScreen: React.FC = () => {
@@ -34,112 +33,85 @@ const DestinationScreen: React.FC = () => {
   };
 
   return (
-    <View style={{ backgroundColor: 'white', flex: 1 }}>
+    <View className="flex-1 bg-white">
       {item.image ? (
-        <Image source={{ uri: item.image as string }} style={{ width, height: height * 0.55 }} />
+        <Image
+          source={{ uri: item.image as string }}
+          style={{ width, height: height * 0.55 }}
+        />
       ) : (
-        <View style={{ width, height: height * 0.55, backgroundColor: '#d1d5db' }} />
+        <View className="bg-gray-300" style={{ width, height: height * 0.55 }} />
       )}
+
       <StatusBar style="light" />
 
       {/* Top buttons */}
       <SafeAreaView
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          position: 'absolute',
-          width: '100%',
-          marginTop: topMargin,
-          paddingHorizontal: 16,
-        }}
+        className="absolute w-full flex-row justify-between items-center px-4"
+        style={{ marginTop: topMargin }}
       >
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={{
-            padding: 10,
-            borderRadius: 999,
-            backgroundColor: 'rgba(255,255,255,0.5)',
-          }}
-        >
+        <TouchableOpacity className="p-2 rounded-full bg-white/50" onPress={() => router.back()}>
           <Feather name="chevron-left" size={28} color="white" />
         </TouchableOpacity>
         <TouchableOpacity
+          className="p-2 rounded-full bg-white/50"
           onPress={() => toggleFavourite(!isFavourite)}
-          style={{
-            padding: 10,
-            borderRadius: 999,
-            backgroundColor: 'rgba(255,255,255,0.5)',
-          }}
         >
           <FontAwesome
             name="heart"
             size={28}
-            color={isFavourite ? 'red' : 'white'}
             solid={isFavourite}
+            color={isFavourite ? 'red' : 'white'}
           />
         </TouchableOpacity>
       </SafeAreaView>
 
       {/* Content */}
       <View
+        className="flex-1 bg-white px-5 pt-[30px] justify-between"
         style={{
-          flex: 1,
-          backgroundColor: 'white',
-          paddingHorizontal: 20,
-          paddingTop: 30,
           marginTop: -40,
           borderTopLeftRadius: 40,
           borderTopRightRadius: 40,
-          justifyContent: 'space-between',
         }}
       >
         <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <Text style={{ fontSize: 26, fontWeight: 'bold', color: '#374151', flex: 1 }}>
+          {/* Title + Rating */}
+          <View className="flex-row justify-between items-start">
+            <Text className="text-[26px] font-bold text-gray-700 flex-1">
               {item.title}
             </Text>
-            <Text style={{ fontSize: 22, fontWeight: '600', color: theme.text }}>
+            <Text
+              className="text-[22px] font-semibold"
+              style={{ color: theme.text }}
+            >
               ⭐ {item.rating?.toFixed(1) ?? 'N/A'}
             </Text>
           </View>
 
-          <Text
-            style={{
-              fontSize: 15,
-              color: '#374151',
-              marginTop: 10,
-              marginBottom: 15,
-              lineHeight: 22,
-            }}
-          >
+          {/* Description */}
+          <Text className="text-[15px] text-gray-700 mt-[10px] mb-[15px] leading-[22px]">
             {item.description}
           </Text>
 
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
+          {/* Address */}
+          <View className="flex-row items-start gap-2">
             <MaterialIcons name="location-pin" size={24} color="#f87171" />
-            <Text style={{ fontSize: 16, color: '#4b5563', flex: 1 }}>
+            <Text className="text-[16px] text-gray-600 flex-1">
               {item.address}
             </Text>
           </View>
         </ScrollView>
 
+        {/* Book Now Button */}
         <TouchableOpacity
+          className="h-[55px] rounded-full justify-center items-center self-center mt-4 mb-6"
           style={{
-            backgroundColor: theme.bg(0.8),
-            height: 55,
             width: width * 0.5,
-            borderRadius: 999,
-            alignSelf: 'center',
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginBottom: 24,
-            marginTop: 16,
+            backgroundColor: theme.bg(0.8),
           }}
         >
-          <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 18 }}>
-            Book now
-          </Text>
+          <Text className="text-white font-bold text-[18px]">Book now</Text>
         </TouchableOpacity>
       </View>
     </View>
