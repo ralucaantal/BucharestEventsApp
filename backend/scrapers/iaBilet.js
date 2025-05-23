@@ -1,6 +1,6 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
-import { parse } from "node-html-parser";
+import puppeteer from "puppeteer";
 
 export async function fetchIaBiletEvents() {
   const days = [-1, 0, 1, 2, 3]; // ieri → peste 3 zile
@@ -41,9 +41,9 @@ export async function fetchIaBiletEvents() {
         allEvents.push({
           title,
           location,
-          url: link,
+          url: link.startsWith("http") ? link : `https://www.iabilet.ro${link}`,
           image_url: image,
-          dateRaw: formatDateOnly(date), // pentru parsare ulterioară
+          dateRaw: formatDateOnly(date),
         });
       }
     }
@@ -51,21 +51,28 @@ export async function fetchIaBiletEvents() {
 
   console.log(`📦 Evenimente din București găsite: ${allEvents.length}`);
 
-  // Extrage ora din paginile de detaliu
+  // 🔁 Extragere ora cu Puppeteer
+  const browser = await puppeteer.launch({ headless: true });
+  const page = await browser.newPage();
+
   for (const ev of allEvents) {
     try {
-      const res = await axios.get(ev.url);
-      const root = parse(res.data);
-      const text = root.text.toLowerCase();
-      const match = text.match(/ora\s+(\d{1,2}:\d{2})/);
+      await page.goto(ev.url, { waitUntil: "networkidle2" });
+
+      const bodyText = await page.evaluate(() => document.body.innerText.toLowerCase());
+      const match = bodyText.match(/ora\s+(\d{1,2}:\d{2})/);
       ev.time = match ? match[1] : "19:00";
-    } catch {
+
+      console.log(`⏰ ${ev.title} (${ev.dateRaw}) → ${ev.time}`);
+    } catch (err) {
       ev.time = "19:00";
+      console.log(`⚠️ Eroare la extragerea orei pentru ${ev.title}`);
     }
 
     ev.date = parseRomanianDateWithTime(ev.dateRaw, ev.time);
   }
 
+  await browser.close();
   return allEvents;
 }
 
