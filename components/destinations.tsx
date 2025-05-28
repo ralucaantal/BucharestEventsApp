@@ -10,8 +10,10 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { FontAwesome } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants';
 import { theme } from '../theme';
+import { useFocusEffect } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
@@ -31,8 +33,32 @@ type Props = {
   activeCategory: string;
 };
 
-const DestinationCard: React.FC<{ item: Place }> = ({ item }) => {
-  const [isFavourite, toggleFavourite] = useState(false);
+const DestinationCard: React.FC<{
+  item: Place;
+  userId: number;
+  favorites: string[];
+  onToggleFavorite: () => void;
+}> = ({ item, userId, favorites, onToggleFavorite }) => {
+  const [isFavourite, setIsFavourite] = useState(false);
+
+  useEffect(() => {
+    setIsFavourite(favorites.includes(item.place_id));
+  }, [favorites, item.place_id]);
+
+  const toggle = async () => {
+    const newStatus = !isFavourite;
+    try {
+      await fetch(`${BASE_URL}/favorites`, {
+        method: newStatus ? 'POST' : 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, placeId: item.place_id }),
+      });
+      setIsFavourite(newStatus);
+      onToggleFavorite();
+    } catch (e) {
+      console.error('Favorite toggle failed', e);
+    }
+  };
 
   return (
     <TouchableOpacity
@@ -93,7 +119,7 @@ const DestinationCard: React.FC<{ item: Place }> = ({ item }) => {
       />
 
       <TouchableOpacity
-        onPress={() => toggleFavourite(!isFavourite)}
+        onPress={toggle}
         style={{
           position: 'absolute',
           top: 12,
@@ -140,6 +166,33 @@ const DestinationCard: React.FC<{ item: Place }> = ({ item }) => {
 const Destinations: React.FC<Props> = ({ activeCategory }) => {
   const [destinations, setDestinations] = useState<Place[]>([]);
   const [loading, setLoading] = useState(true);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [userId, setUserId] = useState<number | null>(null);
+
+  const fetchFavorites = async (uid: number) => {
+    try {
+      const res = await fetch(`${BASE_URL}/favorites/${uid}`);
+      const data = await res.json();
+      setFavorites(data.map((place: Place) => place.place_id));
+    } catch (e) {
+      console.error('Failed to load favorites', e);
+    }
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchUserAndFavorites = async () => {
+        const stored = await AsyncStorage.getItem('user');
+        if (!stored) return;
+        const parsed = JSON.parse(stored);
+        const uid = parsed.id;
+        setUserId(uid);
+        await fetchFavorites(uid);
+      };
+
+      fetchUserAndFavorites();
+    }, [])
+  );
 
   useEffect(() => {
     const fetchPlaces = async () => {
@@ -163,11 +216,27 @@ const Destinations: React.FC<Props> = ({ activeCategory }) => {
   return (
     <View style={{ minHeight: 280, paddingHorizontal: 20 }}>
       {loading ? (
-        <ActivityIndicator size="large" color="#3b82f6" style={{ marginTop: 20, alignSelf: 'center' }} />
+        <ActivityIndicator
+          size="large"
+          color="#3b82f6"
+          style={{ marginTop: 20, alignSelf: 'center' }}
+        />
       ) : (
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            justifyContent: 'space-between',
+          }}
+        >
           {destinations.map((item) => (
-            <DestinationCard item={item} key={item.place_id} />
+            <DestinationCard
+              item={item}
+              key={item.place_id}
+              userId={userId!}
+              favorites={favorites}
+              onToggleFavorite={() => fetchFavorites(userId!)}
+            />
           ))}
         </View>
       )}
