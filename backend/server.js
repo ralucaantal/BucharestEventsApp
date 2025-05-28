@@ -438,6 +438,55 @@ app.post("/login", async (req, res) => {
   }
 });
 
+app.post("/favorites", async (req, res) => {
+  const { userId, placeId } = req.body;
+  console.log("Adding favorite:", { userId, placeId });
+
+  try {
+    await pool.query(
+      `INSERT INTO favorites (user_id, place_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+      [userId, placeId]
+    );
+    console.log(`✅ Added favorite for user ${userId} and place ${placeId}`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("❌ Error adding favorite:", err);
+    res.status(500).json({ error: "Failed to add favorite" });
+  }
+});
+
+app.delete("/favorites", async (req, res) => {
+  const { userId, placeId } = req.body;
+
+  try {
+    await pool.query(
+      `DELETE FROM favorites WHERE user_id = $1 AND place_id = $2`,
+      [userId, placeId]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error("❌ Error removing favorite:", err);
+    res.status(500).json({ error: "Failed to remove favorite" });
+  }
+});
+
+app.get("/favorites/:userId", async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const result = await pool.query(
+      `SELECT p.* FROM places p
+       JOIN favorites f ON p.place_id = f.place_id
+       WHERE f.user_id = $1`,
+      [userId]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Error fetching favorites:", err);
+    res.status(500).json({ error: "Failed to load favorites" });
+  }
+});
+
 app.listen(3000, () =>
   console.log("🟢 Server running at http://localhost:3000")
 );
