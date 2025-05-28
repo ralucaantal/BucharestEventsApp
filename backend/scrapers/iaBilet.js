@@ -62,8 +62,6 @@ export async function fetchIaBiletEvents() {
       const bodyText = await page.evaluate(() => document.body.innerText.toLowerCase());
       const match = bodyText.match(/ora\s+(\d{1,2}:\d{2})/);
       ev.time = match ? match[1] : "19:00";
-
-      console.log(`⏰ ${ev.title} (${ev.dateRaw}) → ${ev.time}`);
     } catch (err) {
       ev.time = "19:00";
       console.log(`⚠️ Eroare la extragerea orei pentru ${ev.title}`);
