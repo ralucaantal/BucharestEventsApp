@@ -217,7 +217,7 @@ app.post("/import-places", async (req, res) => {
 });
 
 app.get("/places", async (req, res) => {
-  const { tag, category, limit } = req.query;
+  const { tag, category, limit, userId } = req.query;
 
   try {
     let result;
@@ -242,6 +242,14 @@ app.get("/places", async (req, res) => {
           limit ? "LIMIT $1" : ""
         }`,
         limit ? [Number(limit)] : []
+      );
+    } else if (category === "Favorites" && userId) {
+      result = await pool.query(
+        `SELECT p.* FROM places p
+         JOIN favorites f ON p.place_id = f.place_id
+         WHERE f.user_id = $1
+         ORDER BY p.user_ratings_total DESC ${limit ? "LIMIT $2" : ""}`,
+        limit ? [userId, Number(limit)] : [userId]
       );
     } else {
       result = await pool.query(
