@@ -7,6 +7,11 @@ import cron from "node-cron";
 import fetch from "node-fetch";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPEN_AI_SECRET, // sau pune cheia direct dacă testezi local
+});
 
 const app = express();
 app.use(cors());
@@ -494,6 +499,39 @@ app.get("/favorites/:userId", async (req, res) => {
     res.status(500).json({ error: "Failed to load favorites" });
   }
 });
+
+app.post("/generate-itinerary", async (req, res) => {
+  const { prompt } = req.body;
+
+  if (!prompt) {
+    return res.status(400).json({ error: "Missing prompt" });
+  }
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo", // sau "gpt-4" dacă ai acces
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 800,
+      temperature: 0.7,
+    });
+
+    const message = response.choices?.[0]?.message?.content;
+
+    if (!message) {
+      return res
+        .status(500)
+        .json({ error: "AI did not return a message", raw: response });
+    }
+
+    res.json({ itinerary: message });
+  } catch (err) {
+    console.error("❌ OpenAI SDK error:", err);
+    res
+      .status(500)
+      .json({ error: "AI request failed", details: err.message || err });
+  }
+});
+
 
 app.listen(3000, () =>
   console.log("🟢 Server running at http://localhost:3000")
