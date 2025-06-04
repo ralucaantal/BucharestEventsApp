@@ -9,6 +9,7 @@ import {
   Platform,
   Keyboard,
   TouchableWithoutFeedback,
+  Image,
 } from "react-native";
 import MapView, { Marker, Callout, PROVIDER_GOOGLE } from "react-native-maps";
 import { useRouter } from "expo-router";
@@ -18,7 +19,6 @@ import mapStyle from "../assets/mapStyle.json";
 import { BASE_URL } from "../constants";
 import * as Location from "expo-location";
 import { categoriesData } from "../constants";
-import { Image } from "react-native";
 
 const typeToCategoryMap: Record<string, { title: string; image: any }> = {
   tourist_attraction: categoriesData[0], // 🏛 Monuments
@@ -81,7 +81,6 @@ export default function MapScreen() {
     description: string;
     icon: string;
   } | null>(null);
-
   const [location, setLocation] =
     useState<Location.LocationObjectCoords | null>(null);
 
@@ -154,7 +153,7 @@ export default function MapScreen() {
   });
 
   const now = new Date();
-  const today = now.toISOString().split("T")[0]; // ex: "2025-06-04"
+  const today = now.toISOString().split("T")[0];
 
   const validEvents = events.filter((ev) => {
     if (
@@ -164,10 +163,8 @@ export default function MapScreen() {
     ) {
       return false;
     }
-
     const eventDate = new Date(ev.date);
     const eventDay = eventDate.toISOString().split("T")[0];
-
     return eventDay === today && eventDate > now;
   });
 
@@ -224,9 +221,19 @@ export default function MapScreen() {
             }}>
             <Marker
               coordinate={location}
-              title="You are here"
-              pinColor="#ff5d9e"
-            />
+              pinColor="#ff5d9e">
+              <Callout tooltip>
+                <View className="bg-white p-3 rounded-xl shadow-lg w-56 items-center">
+                  <Text className="text-lg font-bold text-[#ff5d9e] text-center">
+                    🧭 You are here
+                  </Text>
+                  <Text className="text-sm text-gray-600 mt-1 text-center">
+                    This is your current location on the map.
+                  </Text>
+                </View>
+              </Callout>
+            </Marker>
+
             {filteredPlaces.map((item, index) => (
               <Marker
                 key={`place-${index}`}
@@ -240,7 +247,6 @@ export default function MapScreen() {
                     <Text className="font-bold text-lg text-[#4b0082] text-center">
                       {item.name}
                     </Text>
-
                     {typeToCategoryMap[item.types?.[0]]?.image && (
                       <View className="my-2">
                         <Image
@@ -253,7 +259,6 @@ export default function MapScreen() {
                         />
                       </View>
                     )}
-
                     <Text className="text-sm text-gray-600 text-center">
                       {typeToCategoryMap[item.types?.[0]]?.title ||
                         item.address}
@@ -291,7 +296,6 @@ export default function MapScreen() {
             ))}
           </MapView>
 
-          {/* Weather indicator + location button */}
           {weather && (
             <View className="absolute bottom-10 right-4 flex-row items-center space-x-6 z-20">
               <TouchableOpacity
@@ -299,7 +303,6 @@ export default function MapScreen() {
                 className="bg-white p-3 right-7 rounded-full shadow-md">
                 <Feather name="crosshair" size={20} color="#ff5d9e" />
               </TouchableOpacity>
-
               <View className="bg-[#7574c0] right-4 px-5 py-4 rounded-xl shadow-md flex-row items-center">
                 <Text className="text-white font-semibold">
                   {getWeatherEmoji(weather.description)}{" "}
@@ -309,14 +312,12 @@ export default function MapScreen() {
             </View>
           )}
 
-          {/* No results */}
           {noResults && (
             <View className="absolute top-32 self-center bg-black/70 px-4 py-2 rounded-md">
               <Text className="text-white">No places found.</Text>
             </View>
           )}
 
-          {/* Search and back button */}
           <SafeAreaView className="absolute top-0 left-0 right-0 z-20 px-4 pt-4">
             <TouchableOpacity
               onPress={() => router.back()}
