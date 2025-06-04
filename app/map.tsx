@@ -302,6 +302,13 @@ export default function MapScreen() {
                         item.address}
                     </Text>
 
+                    {item.rating && item.user_ratings_total && (
+                      <Text className="text-sm text-yellow-600 mt-1 text-center">
+                        ⭐ {item.rating} ({item.user_ratings_total} review
+                        {item.user_ratings_total === 1 ? "" : "s"})
+                      </Text>
+                    )}
+
                     <TouchableOpacity
                       onPress={() =>
                         openNavigationApp(
@@ -389,8 +396,12 @@ export default function MapScreen() {
           )}
 
           {noResults && (
-            <View className="absolute top-32 self-center bg-black/70 px-4 py-2 rounded-md">
-              <Text className="text-white">No places found.</Text>
+            <View className="absolute inset-0 justify-center items-center">
+              <View className="bg-[#7574c0] px-6 py-3 rounded-2xl shadow-md">
+                <Text className="text-white font-semibold text-base text-center">
+                  No places found.
+                </Text>
+              </View>
             </View>
           )}
 
@@ -401,21 +412,22 @@ export default function MapScreen() {
               <Feather name="chevron-left" size={28} color="white" />
             </TouchableOpacity>
 
-            <View className="bg-[#ede9fe] flex-row items-center px-5 py-3 rounded-2xl shadow-md">
-              {searchText !== "" ? (
-                <TouchableOpacity onPress={clearSearch}>
-                  <Feather name="x" size={20} color="#6b7280" />
-                </TouchableOpacity>
-              ) : (
-                <Feather name="search" size={20} color="#6b7280" />
-              )}
+            <View className="flex-row items-center bg-white rounded-full shadow-md px-4 py-2 border border-gray-200">
+              <Feather name="search" size={20} color="#6b7280" />
               <TextInput
-                placeholder="Search places..."
-                placeholderTextColor="#6b7280"
+                className="flex-1 ml-3 text-base text-gray-800"
+                placeholder="Search for places..."
+                placeholderTextColor="#9ca3af"
                 value={searchText}
                 onChangeText={setSearchText}
-                className="ml-3 flex-1 text-base text-[#1f2937]"
               />
+              {searchText !== "" && (
+                <TouchableOpacity
+                  onPress={clearSearch}
+                  className="ml-2 bg-gray-200 rounded-full p-1.5">
+                  <Feather name="x" size={16} color="#374151" />
+                </TouchableOpacity>
+              )}
             </View>
           </SafeAreaView>
         </View>
