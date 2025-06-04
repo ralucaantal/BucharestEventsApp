@@ -309,6 +309,18 @@ export default function MapScreen() {
                       </Text>
                     )}
 
+                    {item.price_level && (
+                      <Text className="text-xs text-gray-500 mt-1 text-center">
+                        💰{" "}
+                        {{
+                          1: "Cheap",
+                          2: "Moderate",
+                          3: "Expensive",
+                          4: "Very expensive",
+                        }[item.price_level as 1 | 2 | 3 | 4] || "Unknown"}
+                      </Text>
+                    )}
+
                     <TouchableOpacity
                       onPress={() =>
                         openNavigationApp(
