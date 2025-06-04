@@ -10,13 +10,33 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Marker, Callout, PROVIDER_GOOGLE } from "react-native-maps";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import mapStyle from "../assets/mapStyle.json";
 import { BASE_URL } from "../constants";
 import * as Location from "expo-location";
+import { categoriesData } from "../constants";
+import { Image } from "react-native";
+
+const typeToCategoryMap: Record<string, { title: string; image: any }> = {
+  tourist_attraction: categoriesData[0], // 🏛 Monuments
+  museum: categoriesData[1],
+  restaurant: categoriesData[2],
+  park: categoriesData[3],
+  movie_theater: categoriesData[5],
+  cafe: categoriesData[6],
+  bar: categoriesData[7],
+  shopping_mall: categoriesData[8],
+  store: categoriesData[8],
+  supermarket: categoriesData[8],
+  art_gallery: categoriesData[9],
+  library: categoriesData[10],
+  spa: categoriesData[11],
+  gym: categoriesData[11],
+  beauty_salon: categoriesData[11],
+};
 
 const normalize = (text: string): string =>
   text
@@ -133,12 +153,23 @@ export default function MapScreen() {
     );
   });
 
-  const validEvents = events.filter(
-    (ev) =>
-      typeof ev.latitude === "number" &&
-      typeof ev.longitude === "number" &&
-      ev.date
-  );
+  const now = new Date();
+  const today = now.toISOString().split("T")[0]; // ex: "2025-06-04"
+
+  const validEvents = events.filter((ev) => {
+    if (
+      typeof ev.latitude !== "number" ||
+      typeof ev.longitude !== "number" ||
+      !ev.date
+    ) {
+      return false;
+    }
+
+    const eventDate = new Date(ev.date);
+    const eventDay = eventDate.toISOString().split("T")[0];
+
+    return eventDay === today && eventDate > now;
+  });
 
   const noResults = searchText && filteredPlaces.length === 0;
 
@@ -203,11 +234,35 @@ export default function MapScreen() {
                   latitude: item.latitude,
                   longitude: item.longitude,
                 }}
-                title={item.name}
-                description={item.types?.[0] || item.address}
-                pinColor="#7574c0"
-              />
+                pinColor="#7574c0">
+                <Callout tooltip>
+                  <View className="bg-white p-3 rounded-xl shadow-lg w-64 items-center">
+                    <Text className="font-bold text-lg text-[#4b0082] text-center">
+                      {item.name}
+                    </Text>
+
+                    {typeToCategoryMap[item.types?.[0]]?.image && (
+                      <View className="my-2">
+                        <Image
+                          source={typeToCategoryMap[item.types?.[0]].image}
+                          style={{
+                            width: 60,
+                            height: 60,
+                            resizeMode: "contain",
+                          }}
+                        />
+                      </View>
+                    )}
+
+                    <Text className="text-sm text-gray-600 text-center">
+                      {typeToCategoryMap[item.types?.[0]]?.title ||
+                        item.address}
+                    </Text>
+                  </View>
+                </Callout>
+              </Marker>
             ))}
+
             {validEvents.map((ev, index) => (
               <Marker
                 key={`event-${index}`}
@@ -215,10 +270,24 @@ export default function MapScreen() {
                   latitude: ev.latitude,
                   longitude: ev.longitude,
                 }}
-                title={ev.title}
-                description={new Date(ev.date).toLocaleString()}
-                pinColor="#9333ea"
-              />
+                pinColor="#9333ea">
+                <Callout tooltip>
+                  <View className="bg-white p-3 rounded-xl shadow-lg w-64">
+                    <Text className="font-bold text-lg text-[#9333ea]">
+                      {ev.title}
+                    </Text>
+                    <Text className="text-sm text-gray-600 mt-1">
+                      {new Date(ev.date).toLocaleDateString("ro-RO", {
+                        weekday: "long",
+                        day: "numeric",
+                        month: "long",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </Text>
+                  </View>
+                </Callout>
+              </Marker>
             ))}
           </MapView>
 
