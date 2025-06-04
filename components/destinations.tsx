@@ -68,8 +68,10 @@ const DestinationCard: React.FC<{
           params: {
             name: item.name,
             photo_url: item.photo_url ?? "",
-            rating: item.rating,
-            address: item.address,
+            rating: item.rating?.toString() ?? "",
+            address: item.address ?? "",
+            lat: item.latitude?.toString() ?? "",
+            lng: item.longitude?.toString() ?? "",
           },
         })
       }
@@ -87,8 +89,7 @@ const DestinationCard: React.FC<{
         elevation: 3,
         position: "relative",
       }}
-      activeOpacity={0.9}
-    >
+      activeOpacity={0.9}>
       {item.photo_url ? (
         <Image
           source={{ uri: item.photo_url }}
@@ -102,8 +103,7 @@ const DestinationCard: React.FC<{
             backgroundColor: "#d1d5db",
             justifyContent: "center",
             alignItems: "center",
-          }}
-        >
+          }}>
           <Text>No image</Text>
         </View>
       )}
@@ -127,8 +127,7 @@ const DestinationCard: React.FC<{
           backgroundColor: "rgba(255,255,255,0.5)",
           padding: 8,
           borderRadius: 999,
-        }}
-      >
+        }}>
         <FontAwesome
           name="heart"
           size={20}
@@ -144,8 +143,7 @@ const DestinationCard: React.FC<{
             fontWeight: "bold",
             fontSize: width * 0.042,
             marginBottom: 4,
-          }}
-        >
+          }}>
           {item.name}
         </Text>
         <Text
@@ -154,8 +152,7 @@ const DestinationCard: React.FC<{
             fontSize: width * 0.031,
             lineHeight: width * 0.04,
           }}
-          numberOfLines={2}
-        >
+          numberOfLines={2}>
           {item.address}
         </Text>
       </View>
@@ -245,8 +242,7 @@ const Destinations: React.FC<Props> = ({ activeCategory }) => {
             flexDirection: "row",
             flexWrap: "wrap",
             justifyContent: "space-between",
-          }}
-        >
+          }}>
           {destinations.map((item) => (
             <DestinationCard
               item={item}
@@ -273,8 +269,7 @@ const Destinations: React.FC<Props> = ({ activeCategory }) => {
               paddingVertical: 12,
               borderRadius: 999,
               marginBottom: 20,
-            }}
-          >
+            }}>
             <Text style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>
               See All
             </Text>

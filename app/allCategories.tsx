@@ -138,8 +138,10 @@ const AllCategoriesScreen: React.FC = () => {
                     params: {
                       name: place.name,
                       photo_url: place.photo_url ?? "",
-                      rating: place.rating,
-                      address: place.address,
+                      rating: place.rating?.toString() ?? "",
+                      address: place.address ?? "",
+                      lat: place.latitude?.toString() ?? "",
+                      lng: place.longitude?.toString() ?? "", 
                     },
                   })
                 }
@@ -180,8 +182,7 @@ const AllCategoriesScreen: React.FC = () => {
                     backgroundColor: "rgba(255,255,255,0.6)",
                     padding: 6,
                     borderRadius: 999,
-                  }}
-                >
+                  }}>
                   <FontAwesome
                     name="heart"
                     size={20}
