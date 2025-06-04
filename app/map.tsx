@@ -106,6 +106,15 @@ export default function MapScreen() {
   } | null>(null);
   const [location, setLocation] =
     useState<Location.LocationObjectCoords | null>(null);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  useEffect(() => {
+    if (text.length > 1) {
+      const limitedSuggestions = filteredPlaces.slice(0, 3);
+      setSuggestions(limitedSuggestions);
+    } else {
+      setSuggestions([]);
+    }
+  }, [searchText]);
 
   useEffect(() => {
     (async () => {
@@ -433,6 +442,36 @@ export default function MapScreen() {
                 value={searchText}
                 onChangeText={setSearchText}
               />
+              {suggestions.length > 0 && (
+                <View className="absolute top-28 left-4 right-4 z-30 bg-white rounded-xl shadow-lg">
+                  {suggestions.map((item, index) => (
+                    <TouchableOpacity
+                      key={`suggestion-${index}`}
+                      onPress={() => {
+                        setSearchText(""); // închide sugestiile
+                        setSuggestions([]);
+
+                        // Focalizează harta
+                        mapRef.current?.animateToRegion({
+                          latitude: item.latitude,
+                          longitude: item.longitude,
+                          latitudeDelta: 0.01,
+                          longitudeDelta: 0.01,
+                        });
+
+                      }}
+                      className="px-4 py-3 border-b border-gray-100">
+                      <Text className="text-gray-800 font-medium">
+                        {item.name}
+                      </Text>
+                      <Text className="text-gray-500 text-xs">
+                        {item.address}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+
               {searchText !== "" && (
                 <TouchableOpacity
                   onPress={clearSearch}
