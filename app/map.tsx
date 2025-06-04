@@ -10,6 +10,8 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   Image,
+  Linking,
+  Alert,
 } from "react-native";
 import MapView, { Marker, Callout, PROVIDER_GOOGLE } from "react-native-maps";
 import { useRouter } from "expo-router";
@@ -37,6 +39,27 @@ const typeToCategoryMap: Record<string, { title: string; image: any }> = {
   gym: categoriesData[11],
   beauty_salon: categoriesData[11],
 };
+
+function openNavigationApp(lat: number, lon: number, label: string) {
+  const iosUrl = `maps://?daddr=${lat},${lon}&dirflg=d`;
+  const androidUrl = `google.navigation:q=${lat},${lon}`;
+  const webUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}&travelmode=driving`;
+
+  const url = Platform.OS === "ios" ? iosUrl : androidUrl;
+
+  Linking.canOpenURL(url)
+    .then((supported) => {
+      if (supported) {
+        Linking.openURL(url);
+      } else {
+        return Linking.openURL(webUrl);
+      }
+    })
+    .catch((err) => {
+      console.error("Navigation error:", err);
+      Alert.alert("Error", "Could not open navigation app.");
+    });
+}
 
 const normalize = (text: string): string =>
   text
@@ -219,9 +242,7 @@ export default function MapScreen() {
               latitudeDelta: 0.05,
               longitudeDelta: 0.05,
             }}>
-            <Marker
-              coordinate={location}
-              pinColor="#ff5d9e">
+            <Marker coordinate={location} pinColor="#ff5d9e">
               <Callout tooltip>
                 <View className="bg-white p-3 rounded-xl shadow-lg w-56 items-center">
                   <Text className="text-lg font-bold text-[#ff5d9e] text-center">
@@ -242,8 +263,27 @@ export default function MapScreen() {
                   longitude: item.longitude,
                 }}
                 pinColor="#7574c0">
-                <Callout tooltip>
-                  <View className="bg-white p-3 rounded-xl shadow-lg w-64 items-center">
+                <Callout tooltip onPress={() => {
+                  Alert.alert(
+                    item.name,
+                    "Curious how to reach this spot?",
+                    [
+                      { text: "Cancel", style: "cancel" },
+                      {
+                        text: "Navigate",
+                        onPress: () =>
+                          openNavigationApp(
+                            item.latitude,
+                            item.longitude,
+                            item.name
+                          ),
+                      },
+                    ]
+                  );
+                }}>
+                  <View
+                    className="bg-white p-3 rounded-xl shadow-lg w-64 items-center"
+                    pointerEvents="auto">
                     <Text className="font-bold text-lg text-[#4b0082] text-center">
                       {item.name}
                     </Text>
@@ -263,6 +303,20 @@ export default function MapScreen() {
                       {typeToCategoryMap[item.types?.[0]]?.title ||
                         item.address}
                     </Text>
+
+                    <TouchableOpacity
+                      onPress={() =>
+                        openNavigationApp(
+                          item.latitude,
+                          item.longitude,
+                          item.name
+                        )
+                      }
+                      className="mt-3 bg-[#4b0082] px-4 py-2 rounded">
+                      <Text className="text-white text-center font-semibold">
+                        Navigate
+                      </Text>
+                    </TouchableOpacity>
                   </View>
                 </Callout>
               </Marker>
