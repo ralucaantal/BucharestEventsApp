@@ -263,11 +263,10 @@ export default function MapScreen() {
                   longitude: item.longitude,
                 }}
                 pinColor="#7574c0">
-                <Callout tooltip onPress={() => {
-                  Alert.alert(
-                    item.name,
-                    "Curious how to reach this spot?",
-                    [
+                <Callout
+                  tooltip
+                  onPress={() => {
+                    Alert.alert(item.name, "Curious how to reach this spot?", [
                       { text: "Cancel", style: "cancel" },
                       {
                         text: "Navigate",
@@ -278,9 +277,8 @@ export default function MapScreen() {
                             item.name
                           ),
                       },
-                    ]
-                  );
-                }}>
+                    ]);
+                  }}>
                   <View
                     className="bg-white p-3 rounded-xl shadow-lg w-64 items-center"
                     pointerEvents="auto">
@@ -330,13 +328,29 @@ export default function MapScreen() {
                   longitude: ev.longitude,
                 }}
                 pinColor="#9333ea">
-                <Callout tooltip>
-                  <View className="bg-white p-3 rounded-xl shadow-lg w-64">
-                    <Text className="font-bold text-lg text-[#9333ea]">
+                <Callout
+                  tooltip
+                  onPress={() =>
+                    Alert.alert(
+                      "Open tickets page?",
+                      "You are about to leave the app to view ticket details. Do you want to continue?",
+                      [
+                        { text: "Cancel", style: "cancel" },
+                        {
+                          text: "Yes",
+                          onPress: () => Linking.openURL(ev.url),
+                        },
+                      ]
+                    )
+                  }>
+                  <View
+                    className="bg-white p-3 rounded-xl shadow-lg w-64 items-center"
+                    pointerEvents="auto">
+                    <Text className="font-bold text-lg text-[#4b0082] text-center">
                       {ev.title}
                     </Text>
-                    <Text className="text-sm text-gray-600 mt-1">
-                      {new Date(ev.date).toLocaleDateString("ro-RO", {
+                    <Text className="text-sm text-gray-600 mt-1 text-center">
+                      {new Date(ev.date).toLocaleDateString("en-EN", {
                         weekday: "long",
                         day: "numeric",
                         month: "long",
@@ -344,6 +358,14 @@ export default function MapScreen() {
                         minute: "2-digit",
                       })}
                     </Text>
+
+                    {ev.url && (
+                      <TouchableOpacity className="mt-3 bg-[#4b0082] px-4 py-2 rounded">
+                        <Text className="text-white text-center font-semibold">
+                          🎟 Tickets
+                        </Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </Callout>
               </Marker>
