@@ -62,7 +62,8 @@ export default function MapScreen() {
     icon: string;
   } | null>(null);
 
-  const [location, setLocation] = useState<Location.LocationObjectCoords | null>(null);
+  const [location, setLocation] =
+    useState<Location.LocationObjectCoords | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -114,8 +115,8 @@ export default function MapScreen() {
       mapRef.current.animateToRegion({
         latitude: location.latitude,
         longitude: location.longitude,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01,
+        latitudeDelta: 0.03,
+        longitudeDelta: 0.03,
       });
     }
   };
@@ -160,6 +161,17 @@ export default function MapScreen() {
       </View>
     );
   }
+
+  const goToCurrentLocation = () => {
+    if (location && mapRef.current) {
+      mapRef.current.animateToRegion({
+        latitude: location.latitude,
+        longitude: location.longitude,
+        latitudeDelta: 0.02,
+        longitudeDelta: 0.02,
+      });
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -210,20 +222,32 @@ export default function MapScreen() {
             ))}
           </MapView>
 
+          {/* Weather indicator + location button */}
           {weather && (
-            <View className="absolute bottom-10 right-10 bg-[#7574c0] px-5 py-4 rounded-xl shadow-md flex-row items-center">
-              <Text className="text-white font-semibold">
-                {getWeatherEmoji(weather.description)} {Math.round(weather.temp)}°C
-              </Text>
+            <View className="absolute bottom-10 right-4 flex-row items-center space-x-6 z-20">
+              <TouchableOpacity
+                onPress={goToCurrentLocation}
+                className="bg-white p-3 right-7 rounded-full shadow-md">
+                <Feather name="crosshair" size={20} color="#ff5d9e" />
+              </TouchableOpacity>
+
+              <View className="bg-[#7574c0] right-4 px-5 py-4 rounded-xl shadow-md flex-row items-center">
+                <Text className="text-white font-semibold">
+                  {getWeatherEmoji(weather.description)}{" "}
+                  {Math.round(weather.temp)}°C
+                </Text>
+              </View>
             </View>
           )}
 
+          {/* No results */}
           {noResults && (
             <View className="absolute top-32 self-center bg-black/70 px-4 py-2 rounded-md">
               <Text className="text-white">No places found.</Text>
             </View>
           )}
 
+          {/* Search and back button */}
           <SafeAreaView className="absolute top-0 left-0 right-0 z-20 px-4 pt-4">
             <TouchableOpacity
               onPress={() => router.back()}
