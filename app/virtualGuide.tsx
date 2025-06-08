@@ -39,12 +39,33 @@ const ItineraryQuestionnaireScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [places, setPlaces] = useState<string[]>([]);
   const [filteredPlaces, setFilteredPlaces] = useState<string[]>([]);
+  const [transportMode, setTransportMode] = useState("walk");
 
   const hourOptions = Array.from({ length: 30 }, (_, i) => {
     const hour = 7 + Math.floor(i / 2);
     const minutes = i % 2 === 0 ? "00" : "30";
     return `${hour.toString().padStart(2, "0")}:${minutes}`;
   });
+
+  const handleClear = () => {
+    setDepartureHour("08:00");
+    setReturnHour("13:00");
+    setMeals({ breakfast: false, lunch: false, dinner: false });
+    setCustomObjectives([]);
+    setCustomInput("");
+    setStartingLocation("");
+    setExtraNotes("");
+    setInterests([]);
+    setFilteredPlaces([]);
+  };
+
+  useEffect(() => {
+    const loadLastItinerary = async () => {
+      const last = await AsyncStorage.getItem("lastItinerary");
+      if (last) setResponse(last);
+    };
+    loadLastItinerary();
+  }, []);
 
   useEffect(() => {
     fetch(`${BASE_URL}/current-weather`)
@@ -96,6 +117,13 @@ const ItineraryQuestionnaireScreen: React.FC = () => {
       .map(([k]) => k)
       .join(", ");
 
+    const transportNote =
+      transportMode === "walk"
+        ? "Use only walking between locations. Do not suggest any kind of vehicle, taxi, or public transport."
+        : transportMode === "public transport"
+        ? "Use only public transport (bus, tram, metro) and walking. Do not suggest taxi, Uber, or Bolt."
+        : "You may suggest walking, public transport, or taxi (e.g., Bolt or Uber), depending on what is most efficient.";
+
     const prompt = `Create a one-day itinerary in Bucharest. The user will leave at ${departureHour} from ${
       startingLocation || "an unknown location"
     } and must return to the same location by ${returnHour}. The itinerary must fit strictly within this time interval. They want to do: ${interests.join(
@@ -104,9 +132,15 @@ const ItineraryQuestionnaireScreen: React.FC = () => {
       mealList || "no specific meals"
     }. Weather is: ${weather}. Must include: ${
       customObjectives.join(", ") || "no specific places"
-    }. Additional notes: ${
-      extraNotes || "none"
-    }. Return the itinerary as a numbered list.`;
+    }. Additional notes: ${extraNotes || "none"}.
+
+Return the itinerary as a numbered list. For each step:
+- On the first line, specify the exact time and the activity, using real, specific places in Bucharest (e.g., '08:30 - Visit Carol Park', '09:15 - Have coffee at Beans & Dots')
+- If needed, on the second line, add: 'Instructions: ...' to describe how to get to the next location
+
+Avoid vague phrases like 'a park', 'a museum', 'a café' — always name a specific place in Bucharest.
+Make sure the schedule is realistic and fits strictly between ${departureHour} and ${returnHour}.
+${transportNote}`;
 
     try {
       const res = await fetch(`${BASE_URL}/generate-itinerary`, {
@@ -349,6 +383,28 @@ const ItineraryQuestionnaireScreen: React.FC = () => {
           </View>
 
           <Text className="font-semibold text-gray-700 mb-2">
+            How do you prefer to travel?
+          </Text>
+          <View className="flex-row flex-wrap gap-3 mb-6">
+            {["walk", "public transport", "taxi"].map((mode) => {
+              const selected = transportMode === mode;
+              return (
+                <TouchableOpacity
+                  key={mode}
+                  onPress={() => setTransportMode(mode)}
+                  className="px-4 py-2 rounded-full border"
+                  style={{
+                    backgroundColor: selected ? theme.buttons2 : "#f3f4f6",
+                  }}>
+                  <Text className={selected ? "text-white" : "text-gray-700"}>
+                    {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          <Text className="font-semibold text-gray-700 mb-2">
             Anything else we should know?
           </Text>
           <TextInput
@@ -359,38 +415,82 @@ const ItineraryQuestionnaireScreen: React.FC = () => {
             multiline
           />
 
-          <TouchableOpacity
-            onPress={handleGenerate}
-            disabled={loading}
-            className="py-4 rounded-full shadow-md mb-16"
-            style={{ backgroundColor: theme.buttons1 }}>
-            <Text className="text-center text-white font-bold text-base">
-              {loading ? "Generating..." : "Generate Itinerary"}
-            </Text>
-          </TouchableOpacity>
+          <View
+            className="flex-row justify-between space-x-8 mb-16"
+            style={{ gap: 20 }}>
+            <TouchableOpacity
+              onPress={handleGenerate}
+              disabled={loading}
+              className="flex-1 py-4 rounded-full shadow-md"
+              style={{ backgroundColor: theme.buttons1 }}>
+              <Text className="text-center text-white font-bold text-base">
+                {loading ? "Generating..." : "Generate Itinerary"}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleClear}
+              className="flex-1 py-4 rounded-full shadow-md"
+              style={{ backgroundColor: "#E5E7EB" }} // Tailwind: bg-gray-600
+            >
+              <Text
+                className="text-center font-bold text-base"
+                style={{ color: theme.buttons2 }}>
+                Clear
+              </Text>
+            </TouchableOpacity>
+          </View>
 
           {response !== "" && (
             <View className="mt-8">
               <Text className="text-lg font-bold text-gray-800 mb-4">
                 Your Suggested Itinerary:
               </Text>
-              {response.split("\n").map((step, index) => (
-                <TouchableOpacity
-                  key={index}
-                  activeOpacity={1}
-                  className="flex-row bg-gray-100 px-4 py-3 rounded-2xl mb-4 items-start">
-                  <View
-                    className="w-7 h-7 rounded-full mr-4 items-center justify-center"
-                    style={{ backgroundColor: theme.buttons2 }}>
-                    <Text className="text-white font-bold text-sm">
-                      {index + 1}
-                    </Text>
-                  </View>
-                  <Text className="flex-1 text-base text-gray-700 leading-6">
-                    {step.replace(/^\d+\.\s*/, "")}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+              {(() => {
+                const lines = response
+                  .split("\n")
+                  .map((line) => line.trim())
+                  .filter((line) => line.length > 0);
+
+                let stepNumber = 1;
+
+                return lines.map((step, index) => {
+                  const isInstruction = step
+                    .toLowerCase()
+                    .startsWith("instructions:");
+
+                  if (isInstruction) {
+                    return (
+                      <View
+                        key={`inst-${index}`}
+                        className="ml-10 -mt-2 mb-2 pr-4">
+                        <Text className="text-gray-500 italic text-base leading-5">
+                          ⏱️ {step.replace(/^instructions:\s*/i, "")}
+                        </Text>
+                      </View>
+                    );
+                  }
+
+                  const currentStepNumber = stepNumber;
+                  stepNumber++;
+
+                  return (
+                    <View
+                      key={`main-${index}`}
+                      className="flex-row bg-gray-100 px-4 py-3 rounded-2xl mb-4 items-start">
+                      <View
+                        className="w-7 h-7 rounded-full mr-4 items-center justify-center"
+                        style={{ backgroundColor: theme.buttons2 }}>
+                        <Text className="text-white font-bold text-sm">
+                          {currentStepNumber}
+                        </Text>
+                      </View>
+                      <Text className="flex-1 text-base text-gray-700 leading-6">
+                        {step.replace(/^(\d+[\.:]|\-|\•)?\s*/, "")}
+                      </Text>
+                    </View>
+                  );
+                });
+              })()}
             </View>
           )}
         </ScrollView>
