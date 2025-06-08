@@ -16,6 +16,7 @@ import { useRouter } from "expo-router";
 import { format, addDays, subDays } from "date-fns";
 import { Feather } from "@expo/vector-icons";
 import { BASE_URL } from "../constants";
+import { theme } from "../theme";
 
 const { width } = Dimensions.get("window");
 
@@ -84,12 +85,13 @@ const CalendarScreen: React.FC = () => {
             <View className="flex-row items-center px-5 pt-5 pb-3">
               <TouchableOpacity
                 onPress={() => router.back()}
-                className="p-2 bg-gray-100 rounded-full mr-3"
-              >
+                className="p-2 bg-gray-100 rounded-full mr-3">
                 <Feather name="chevron-left" size={24} color="#1f2937" />
               </TouchableOpacity>
               <View>
-                <Text className="text-2xl font-bold text-gray-800">Events 📅</Text>
+                <Text className="text-2xl font-bold text-gray-800">
+                  Events 📅
+                </Text>
                 <Text className="text-xs text-gray-400 mt-1">
                   What's happening in Bucharest?
                 </Text>
@@ -115,9 +117,11 @@ const CalendarScreen: React.FC = () => {
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 20 }}
-                className="space-x-6"
-              >
+                contentContainerStyle={{
+                  paddingHorizontal: 20,
+                  flexDirection: "row",
+                  columnGap: 10,
+                }}>
                 {daysOptions.map((day, index) => {
                   const isSelected =
                     format(selectedDate, "yyyy-MM-dd") ===
@@ -127,21 +131,23 @@ const CalendarScreen: React.FC = () => {
                       key={index}
                       onPress={() => setSelectedDate(day.date)}
                       className={`py-1.5 px-4 rounded-full min-w-[100px] items-center justify-center ${
-                        isSelected ? "bg-blue-600" : "bg-gray-100"
+                        isSelected ? "" : "bg-gray-100"
                       }`}
-                    >
+                      style={{
+                        backgroundColor: isSelected
+                          ? theme.buttons1
+                          : undefined,
+                      }}>
                       <Text
                         className={`font-bold text-sm ${
                           isSelected ? "text-white" : "text-gray-800"
-                        }`}
-                      >
+                        }`}>
                         {day.label}
                       </Text>
                       <Text
                         className={`text-xs ${
                           isSelected ? "text-white" : "text-gray-400"
-                        }`}
-                      >
+                        }`}>
                         {format(day.date, "dd MMM")}
                       </Text>
                     </TouchableOpacity>
@@ -160,8 +166,7 @@ const CalendarScreen: React.FC = () => {
                   <TouchableOpacity
                     key={event.id}
                     activeOpacity={1}
-                    className="flex-row bg-gray-100 p-3 rounded-2xl mb-4 items-center"
-                  >
+                    className="flex-row bg-gray-100 p-3 rounded-2xl mb-4 items-center">
                     <Image
                       source={event.image}
                       className="rounded-xl mr-4"
@@ -179,8 +184,8 @@ const CalendarScreen: React.FC = () => {
                       {!isPast && (
                         <TouchableOpacity
                           onPress={() => Linking.openURL(event.url)}
-                          className="mt-2 bg-blue-600 px-3 py-1.5 self-start rounded-full"
-                        >
+                          style={{ backgroundColor: theme.buttons2 }}
+                          className="mt-2 px-3 py-1.5 self-start rounded-full">
                           <Text className="text-white font-semibold text-sm">
                             🎟 Tickets
                           </Text>
