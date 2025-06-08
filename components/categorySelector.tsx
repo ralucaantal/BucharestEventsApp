@@ -36,7 +36,7 @@ const CategoryButton: React.FC<ItemProps> = React.memo(({ cat, isActive, onPress
       style={{
         fontWeight: '500',
         fontSize: width * 0.038,
-        color: isActive ? theme.text : 'gray',
+        color: isActive ? theme.buttons1 : 'gray',
       }}
     >
       {cat}

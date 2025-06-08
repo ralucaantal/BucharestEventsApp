@@ -264,7 +264,7 @@ const Destinations: React.FC<Props> = ({ activeCategory }) => {
               )
             }
             style={{
-              backgroundColor: theme.bg(1),
+              backgroundColor: theme.buttons1,
               paddingHorizontal: 30,
               paddingVertical: 12,
               borderRadius: 999,
