@@ -529,6 +529,16 @@ app.post("/generate-itinerary", async (req, res) => {
   }
 });
 
+app.get("/zones", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT id, name FROM zones ORDER BY name");
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error fetching zones:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 
 app.listen(3000, () =>
   console.log("🟢 Server running at http://localhost:3000")

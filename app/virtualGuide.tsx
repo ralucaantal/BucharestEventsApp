@@ -41,6 +41,17 @@ const ItineraryQuestionnaireScreen: React.FC = () => {
   const [filteredPlaces, setFilteredPlaces] = useState<string[]>([]);
   const [transportMode, setTransportMode] = useState("walk");
 
+  const [zones, setZones] = useState<string[]>([]);
+
+  // în useEffect
+  useEffect(() => {
+    fetch(`${BASE_URL}/zones`)
+      .then((res) => res.json())
+      .then((data) => {
+        setZones(data.map((z: any) => z.name));
+      });
+  }, []);
+
   const hourOptions = Array.from({ length: 30 }, (_, i) => {
     const hour = 7 + Math.floor(i / 2);
     const minutes = i % 2 === 0 ? "00" : "30";
@@ -158,6 +169,23 @@ ${transportNote}`;
     }
   };
 
+  const [searchZone, setSearchZone] = useState("");
+
+  const filteredZones = startingLocation
+    ? [startingLocation] // afișează doar zona selectată
+    : zones.filter((zone) =>
+        zone.toLowerCase().includes(searchZone.toLowerCase())
+      );
+
+  const toggleZone = (zone: string) => {
+    if (startingLocation === zone) {
+      setStartingLocation(""); // deselectează
+      setSearchZone(""); // opțional: șterge și căutarea
+    } else {
+      setStartingLocation(zone); // selectează
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <KeyboardAvoidingView
@@ -271,12 +299,38 @@ ${transportNote}`;
           <Text className="font-semibold text-gray-700 mb-2">
             Where do you want to leave from?
           </Text>
-          <TextInput
-            className="bg-gray-100 rounded-full px-4 py-3 text-base text-gray-700 mb-4"
-            placeholder="Ex: hotel, home, or a metro station"
-            value={startingLocation}
-            onChangeText={setStartingLocation}
-          />
+
+          {startingLocation === "" && (
+            <TextInput
+              className="bg-gray-100 rounded-full px-4 py-3 text-base text-gray-700 mb-4"
+              placeholder="Search zone..."
+              value={searchZone}
+              onChangeText={setSearchZone}
+            />
+          )}
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="mb-4"
+            contentContainerStyle={{ gap: 12 }}>
+            {filteredZones.map((zone) => {
+              const selected = startingLocation === zone;
+              return (
+                <TouchableOpacity
+                  key={zone}
+                  onPress={() => toggleZone(zone)}
+                  className="px-4 py-2 rounded-full border"
+                  style={{
+                    backgroundColor: selected ? theme.buttons2 : "#f3f4f6",
+                  }}>
+                  <Text className={selected ? "text-white" : "text-gray-700"}>
+                    {zone}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
 
           <Text className="font-semibold text-gray-700 mb-2">
             Do you want to eat?
