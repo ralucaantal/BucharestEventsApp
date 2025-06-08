@@ -56,7 +56,6 @@ async function importEvents() {
   from.setDate(from.getDate() - 1);
   to.setDate(to.getDate() + 4);
 
-  // Șterge evenimentele în afara intervalului
   await pool.query(`DELETE FROM events WHERE date < $1 OR date > $2`, [
     from.toISOString(),
     to.toISOString(),
@@ -70,7 +69,6 @@ async function importEvents() {
     const eventDate = new Date(ev.date);
     if (eventDate < from || eventDate > to) continue;
 
-    // 🧭 Geocode only if lat/lng is missing
     let latitude = ev.latitude;
     let longitude = ev.longitude;
 
@@ -98,7 +96,6 @@ async function importEvents() {
     );
 
     inserted++;
-    console.log(`✅ Adăugat: ${ev.title}`);
   }
 
   console.log(`📦 Total evenimente salvate: ${inserted}`);

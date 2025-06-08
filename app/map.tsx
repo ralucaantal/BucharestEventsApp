@@ -21,6 +21,7 @@ import mapStyle from "../assets/mapStyle.json";
 import { BASE_URL } from "../constants";
 import * as Location from "expo-location";
 import { categoriesData } from "../constants";
+import { theme } from "../theme";
 
 const typeToCategoryMap: Record<string, { title: string; image: any }> = {
   tourist_attraction: categoriesData[0], // 🏛 Monuments
@@ -251,7 +252,7 @@ export default function MapScreen() {
               latitudeDelta: 0.05,
               longitudeDelta: 0.05,
             }}>
-            <Marker coordinate={location} pinColor="#ff5d9e">
+            <Marker coordinate={location} pinColor={theme.buttons1}>
               <Callout tooltip>
                 <View className="bg-white p-3 rounded-xl shadow-lg w-56 items-center">
                   <Text className="text-lg font-bold text-[#ff5d9e] text-center">
@@ -271,7 +272,7 @@ export default function MapScreen() {
                   latitude: item.latitude,
                   longitude: item.longitude,
                 }}
-                pinColor="#7574c0">
+                pinColor={theme.buttons2}>
                 <Callout
                   tooltip
                   onPress={() => {
@@ -405,7 +406,7 @@ export default function MapScreen() {
               <TouchableOpacity
                 onPress={goToCurrentLocation}
                 className="bg-white p-3 right-7 rounded-full shadow-md">
-                <Feather name="crosshair" size={20} color="#ff5d9e" />
+                <Feather name="crosshair" size={20} color={theme.buttons1} />
               </TouchableOpacity>
               <View className="bg-[#7574c0] right-4 px-5 py-4 rounded-xl shadow-md flex-row items-center">
                 <Text className="text-white font-semibold">
