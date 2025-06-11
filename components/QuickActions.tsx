@@ -21,7 +21,7 @@ const QuickActions: React.FC = () => {
       onPress: () => router.push('/map'),
     },
     {
-      title: 'Plan Your Day ⏱️',
+      title: 'What’s Happening Today 🎉',
       image: require('../assets/images/calendar.png'),
       onPress: () => router.push('/calendar'),
     },
@@ -30,26 +30,20 @@ const QuickActions: React.FC = () => {
       image: require('../assets/images/guide.png'),
       onPress: () => router.push('/virtualGuide'),
     },
+    {
+      title: 'Need some plan suggestions? 🧠',
+      image: require('../assets/images/itineraries.png'),
+      onPress: () => router.push('/virtualGuide'),
+    },
   ];
 
   return (
-    <View style={{ gap: 16 }}>
+    <View className="gap-4">
       {/* Header */}
-      <View
-        style={{
-          paddingHorizontal: 20,
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 8,
-        }}
-      >
+      <View className="px-5 flex-row justify-between items-center mb-2">
         <Text
-          style={{
-            fontSize: width * 0.045,
-            fontWeight: 'bold',
-            color: '#1f2937',
-          }}
+          className="font-bold text-gray-800"
+          style={{ fontSize: width * 0.045 }}
         >
           Quick Actions
         </Text>
@@ -66,44 +60,18 @@ const QuickActions: React.FC = () => {
             key={index}
             activeOpacity={0.8}
             onPress={action.onPress}
-            style={{
-              marginRight: 20,
-              alignItems: 'center',
-            }}
+            className="mr-5 items-center"
           >
-            <View
-              style={{
-                width: width * 0.2,
-                height: width * 0.2,
-                borderRadius: 16,
-                backgroundColor: '#f3f4f6',
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginBottom: 8,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.08,
-                shadowRadius: 2,
-                elevation: 2,
-              }}
-            >
+            <View className="w-[72px] h-[72px] rounded-2xl bg-gray-100 justify-center items-center mb-2 shadow-sm">
               <Image
                 source={action.image}
                 resizeMode="cover"
-                style={{
-                  width: width * 0.18,
-                  height: width * 0.18,
-                  borderRadius: 12,
-                }}
+                className="w-[64px] h-[64px] rounded-xl"
               />
             </View>
             <Text
-              style={{
-                fontSize: width * 0.03,
-                color: '#374151',
-                fontWeight: '500',
-                textAlign: 'center',
-              }}
+              className="text-center text-gray-700 font-medium text-xs w-[80px]"
+              numberOfLines={4}
             >
               {action.title}
             </Text>

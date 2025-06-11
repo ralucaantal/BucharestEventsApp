@@ -40,6 +40,7 @@ const ItineraryQuestionnaireScreen: React.FC = () => {
   const [places, setPlaces] = useState<string[]>([]);
   const [filteredPlaces, setFilteredPlaces] = useState<string[]>([]);
   const [transportMode, setTransportMode] = useState("walk");
+  const [isFromStorage, setIsFromStorage] = useState(false);
 
   const [zones, setZones] = useState<string[]>([]);
 
@@ -73,7 +74,10 @@ const ItineraryQuestionnaireScreen: React.FC = () => {
   useEffect(() => {
     const loadLastItinerary = async () => {
       const last = await AsyncStorage.getItem("lastItinerary");
-      if (last) setResponse(last);
+      if (last) {
+        setResponse(last);
+        setIsFromStorage(true);
+      }
     };
     loadLastItinerary();
   }, []);
@@ -161,6 +165,7 @@ ${transportNote}`;
       });
       const data = await res.json();
       setResponse(data.itinerary);
+      setIsFromStorage(false);
       await AsyncStorage.setItem("lastItinerary", data.itinerary);
     } catch (err) {
       Alert.alert("Error", "Failed to generate itinerary.");
@@ -497,8 +502,11 @@ ${transportNote}`;
           {response !== "" && (
             <View className="mt-8">
               <Text className="text-lg font-bold text-gray-800 mb-4">
-                Your Suggested Itinerary:
+                {isFromStorage
+                  ? "Your Last Itinerary:"
+                  : "Your Suggested Itinerary:"}
               </Text>
+
               {(() => {
                 const lines = response
                   .split("\n")
