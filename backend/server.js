@@ -568,6 +568,43 @@ app.get("/itineraries", async (req, res) => {
   }
 });
 
+app.get("/itineraries/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(
+      `SELECT
+        id,
+        title,
+        theme,
+        description,
+        image_url,
+        starting_point,
+        starting_lat,
+        starting_lng,
+        starting_time,
+        duration_minutes,
+        difficulty,
+        estimated_budget,
+        tags,
+        rating_avg,
+        places
+      FROM itineraries
+      WHERE id = $1`,
+      [id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Itinerary not found" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("❌ Error fetching itinerary:", err);
+    res.status(500).json({ error: "Failed to fetch itinerary" });
+  }
+});
+
 app.listen(3000, () =>
   console.log("🟢 Server running at http://localhost:3000")
 );

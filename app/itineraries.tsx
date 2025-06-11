@@ -89,7 +89,8 @@ const ItinerariesScreen: React.FC = () => {
               <TouchableOpacity
                 key={item.id}
                 activeOpacity={0.9}
-                className="flex-row bg-gray-100 p-3 rounded-2xl mb-4 items-center">
+                className="flex-row bg-gray-100 p-3 rounded-2xl mb-4 items-center"
+                onPress={() => router.push({ pathname: "/itinerary", params: { id: item.id.toString() } })}>
                 <Image
                   source={{ uri: item.image_url }}
                   className="rounded-xl mr-4"
@@ -102,14 +103,10 @@ const ItinerariesScreen: React.FC = () => {
                   </Text>
 
                   {/* Tema + dificultate + buget cu emoji-uri */}
-                  <Text className="text-xs text-gray-500 mt-0.5">
+                  <Text className="text-[12px] text-gray-500 mt-0.5">
                     🎯 Theme: {item.theme} · 🧭 Level: {item.difficulty} · 💰
                     Budget: {getPriceEmoji(item.etimated_budget)}{" "}
-                    {item.etimated_budget}
-                  </Text>
-
-                  <Text className="text-xs text-gray-500 mt-1">
-                    ⭐{" "}
+                    {item.etimated_budget} · ⭐{" "}
                     {isNaN(Number(item.rating_avg))
                       ? "0"
                       : Number(item.rating_avg) % 1 === 0
@@ -119,18 +116,11 @@ const ItinerariesScreen: React.FC = () => {
                   </Text>
 
                   {/* Descriere */}
-                  <Text
+                  {/* <Text
                     className="text-sm text-gray-500 mt-1"
                     numberOfLines={3}>
                     📍 {item.description}
-                  </Text>
-
-                  {/* Punct de pornire + oră + durată */}
-                  <Text className="text-xs text-gray-400 mt-1">
-                    🚶 Start at {item.starting_point} ⏰{" "}
-                    {item.starting_time?.slice(0, 5)} · ⏳{" "}
-                    {Math.round(item.duration_minutes / 60)}h
-                  </Text>
+                  </Text> */}
 
                   {/* TAGS cu badge-uri */}
                   {Array.isArray(item.tags) && item.tags.length > 0 && (
