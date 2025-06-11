@@ -539,6 +539,34 @@ app.get("/zones", async (req, res) => {
   }
 });
 
+app.get("/itineraries", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        id,
+        title,
+        theme,
+        description,
+        image_url,
+        starting_point,
+        starting_lat,
+        starting_lng,
+        starting_time,
+        duration_minutes,
+        difficulty,
+        estimated_budget,
+        tags,
+        rating_avg
+      FROM itineraries
+      ORDER BY created_at DESC
+    `);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Error fetching itineraries:", err);
+    res.status(500).json({ error: "Failed to fetch itineraries" });
+  }
+});
 
 app.listen(3000, () =>
   console.log("🟢 Server running at http://localhost:3000")

@@ -33,7 +33,7 @@ const QuickActions: React.FC = () => {
     {
       title: 'Need some plan suggestions? 🧠',
       image: require('../assets/images/itineraries.png'),
-      onPress: () => router.push('/virtualGuide'),
+      onPress: () => router.push('/itineraries'),
     },
   ];
 
