@@ -610,7 +610,7 @@ app.get("/itineraries/:id", async (req, res) => {
 
 app.post("/favorites/itineraries", async (req, res) => {
   const { userId, itineraryId } = req.body;
-  console.log(req.body)
+  console.log(req.body);
   try {
     await pool.query(
       `INSERT INTO favorite_itineraries (user_id, itinerary_id)
@@ -623,7 +623,7 @@ app.post("/favorites/itineraries", async (req, res) => {
   }
 });
 
-app.delete('/favorites/itineraries', async (req, res) => {
+app.delete("/favorites/itineraries", async (req, res) => {
   const { userId, itineraryId } = req.body;
 
   if (!userId || !itineraryId) {
@@ -632,7 +632,7 @@ app.delete('/favorites/itineraries', async (req, res) => {
 
   try {
     await pool.query(
-      'DELETE FROM favorite_itineraries WHERE user_id = $1 AND itinerary_id = $2',
+      "DELETE FROM favorite_itineraries WHERE user_id = $1 AND itinerary_id = $2",
       [userId, itineraryId]
     );
     res.status(200).json({ message: "Favorite deleted" });
@@ -644,29 +644,73 @@ app.delete('/favorites/itineraries', async (req, res) => {
 
 app.post("/reviews/itineraries", async (req, res) => {
   const { userId, itineraryId, rating, comment } = req.body;
+  const client = await pool.connect();
+
   try {
-    await pool.query(
+    await client.query("BEGIN");
+
+    // 1. Inserare review
+    await client.query(
       `INSERT INTO itinerary_reviews (user_id, itinerary_id, rating, comment)
        VALUES ($1, $2, $3, $4)`,
       [userId, itineraryId, rating, comment]
     );
-    res.json({ success: true });
+
+    // 2. Recalculare medie rating
+    const result = await client.query(
+      `SELECT AVG(rating) AS avg_rating
+       FROM itinerary_reviews
+       WHERE itinerary_id = $1`,
+      [itineraryId]
+    );
+
+    const avg = Number(result.rows[0].avg_rating || 0);
+
+    // 3. Update în itineraries
+    await client.query(
+      `UPDATE itineraries
+       SET rating_avg = $1
+       WHERE id = $2`,
+      [avg, itineraryId]
+    );
+
+    await client.query("COMMIT");
+
+    res.json({ success: true, newAverage: avg });
   } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("❌ Failed to insert review or update avg:", err);
     res.status(500).json({ error: "Failed to add review" });
+  } finally {
+    client.release();
   }
 });
 
-app.get('/favorites/itineraries/:userId', async (req, res) => {
+app.get("/favorites/itineraries/:userId", async (req, res) => {
   const { userId } = req.params;
   try {
     const result = await pool.query(
-      'SELECT itinerary_id FROM favorite_itineraries WHERE user_id = $1',
+      "SELECT itinerary_id FROM favorite_itineraries WHERE user_id = $1",
       [userId]
     );
     res.json(result.rows); // <-- TREBUIE SĂ FIE ARRAY!
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.post("/favorites/check", async (req, res) => {
+  const { userId, itineraryId } = req.body;
+  try {
+    const result = await pool.query(
+      "SELECT 1 FROM favorite_itineraries WHERE user_id = $1 AND itinerary_id = $2",
+      [userId, itineraryId]
+    );
+    res.json(result.rowCount > 0);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
   }
 });
 
