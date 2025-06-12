@@ -572,36 +572,101 @@ app.get("/itineraries/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    const result = await pool.query(
+    const itineraryResult = await pool.query(
       `SELECT
-        id,
-        title,
-        theme,
-        description,
-        image_url,
-        starting_point,
-        starting_lat,
-        starting_lng,
-        starting_time,
-        duration_minutes,
-        difficulty,
-        estimated_budget,
-        tags,
-        rating_avg,
-        places
+        id, title, theme, description, image_url,
+        starting_point, starting_lat, starting_lng,
+        starting_time, duration_minutes, difficulty,
+        estimated_budget, tags, rating_avg
       FROM itineraries
       WHERE id = $1`,
       [id]
     );
 
-    if (result.rowCount === 0) {
+    if (itineraryResult.rowCount === 0) {
       return res.status(404).json({ error: "Itinerary not found" });
     }
 
-    res.json(result.rows[0]);
+    const placesResult = await pool.query(
+      `SELECT
+         ip.time, ip.note, ip.instructions, ip.order,
+         p.name, p.latitude, p.longitude
+       FROM itinerary_places ip
+       JOIN places p ON ip.place_id = p.place_id
+       WHERE ip.itinerary_id = $1
+       ORDER BY ip.order ASC`,
+      [id]
+    );
+
+    const itinerary = itineraryResult.rows[0];
+    itinerary.places = placesResult.rows;
+
+    res.json(itinerary);
   } catch (err) {
     console.error("❌ Error fetching itinerary:", err);
     res.status(500).json({ error: "Failed to fetch itinerary" });
+  }
+});
+
+app.post("/favorites/itineraries", async (req, res) => {
+  const { userId, itineraryId } = req.body;
+  console.log(req.body)
+  try {
+    await pool.query(
+      `INSERT INTO favorite_itineraries (user_id, itinerary_id)
+       VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+      [userId, itineraryId]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to add favorite" });
+  }
+});
+
+app.delete('/favorites/itineraries', async (req, res) => {
+  const { userId, itineraryId } = req.body;
+
+  if (!userId || !itineraryId) {
+    return res.status(400).json({ error: "Missing userId or itineraryId" });
+  }
+
+  try {
+    await pool.query(
+      'DELETE FROM favorite_itineraries WHERE user_id = $1 AND itinerary_id = $2',
+      [userId, itineraryId]
+    );
+    res.status(200).json({ message: "Favorite deleted" });
+  } catch (err) {
+    console.error("❌ DB error on DELETE:", err);
+    res.status(500).json({ error: "DB error" });
+  }
+});
+
+app.post("/reviews/itineraries", async (req, res) => {
+  const { userId, itineraryId, rating, comment } = req.body;
+  try {
+    await pool.query(
+      `INSERT INTO itinerary_reviews (user_id, itinerary_id, rating, comment)
+       VALUES ($1, $2, $3, $4)`,
+      [userId, itineraryId, rating, comment]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to add review" });
+  }
+});
+
+app.get('/favorites/itineraries/:userId', async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const result = await pool.query(
+      'SELECT itinerary_id FROM favorite_itineraries WHERE user_id = $1',
+      [userId]
+    );
+    res.json(result.rows); // <-- TREBUIE SĂ FIE ARRAY!
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 

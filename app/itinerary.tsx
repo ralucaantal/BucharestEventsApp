@@ -80,47 +80,49 @@ const ItineraryDetailScreen: React.FC = () => {
       </View>
 
       {/* Map */}
-      <MapView
-        ref={mapRef}
-        style={{ height: height * 0.4 }}
-        provider="google"
-        customMapStyle={mapStyle}
-        initialRegion={{
-          latitude: coordinates[0].latitude,
-          longitude: coordinates[0].longitude,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        }}>
-        {itinerary.places.map((place: any, index: number) => (
-          <Marker
-            key={index}
-            coordinate={{
-              latitude: place.latitude || place.lat,
-              longitude: place.longitude || place.lng,
-            }}>
-            <View
-              style={{
-                backgroundColor: theme.buttons2,
-                borderRadius: 20,
-                paddingHorizontal: 8,
-                paddingVertical: 4,
-                borderWidth: 1,
-                borderColor: "white",
+      {coordinates.length > 0 && (
+        <MapView
+          ref={mapRef}
+          style={{ height: height * 0.4 }}
+          provider="google"
+          customMapStyle={mapStyle}
+          initialRegion={{
+            latitude: coordinates[0].latitude,
+            longitude: coordinates[0].longitude,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
+          }}>
+          {itinerary.places.map((place: any, index: number) => (
+            <Marker
+              key={index}
+              coordinate={{
+                latitude: place.latitude || place.lat,
+                longitude: place.longitude || place.lng,
               }}>
-              <Text
-                style={{ color: "white", fontWeight: "bold", fontSize: 12 }}>
-                {index + 1}
-              </Text>
-            </View>
-          </Marker>
-        ))}
+              <View
+                style={{
+                  backgroundColor: theme.buttons2,
+                  borderRadius: 20,
+                  paddingHorizontal: 8,
+                  paddingVertical: 4,
+                  borderWidth: 1,
+                  borderColor: "white",
+                }}>
+                <Text
+                  style={{ color: "white", fontWeight: "bold", fontSize: 12 }}>
+                  {index + 1}
+                </Text>
+              </View>
+            </Marker>
+          ))}
 
-        <Polyline
-          coordinates={coordinates}
-          strokeWidth={2}
-          strokeColors={["#ff5d9e"]}
-        />
-      </MapView>
+          <Polyline
+            coordinates={coordinates}
+            strokeWidth={2}
+            strokeColors={["#ff5d9e"]}
+          />
+        </MapView>
+      )}
 
       {/* Detalii */}
       <ScrollView className="flex-1 px-5 pt-4">
