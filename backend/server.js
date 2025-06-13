@@ -770,6 +770,33 @@ app.post("/places/details", async (req, res) => {
   }
 });
 
+app.post("/favorites/check/places", async (req, res) => {
+  const { userId, itineraryId, placeId } = req.body;
+
+  try {
+    if (itineraryId) {
+      const result = await pool.query(
+        "SELECT 1 FROM favorite_itineraries WHERE user_id = $1 AND itinerary_id = $2",
+        [userId, itineraryId]
+      );
+      return res.json(result.rowCount > 0);
+    }
+
+    if (placeId) {
+      const result = await pool.query(
+        "SELECT 1 FROM favorites WHERE user_id = $1 AND place_id = $2",
+        [userId, placeId]
+      );
+      return res.json(result.rowCount > 0);
+    }
+
+    return res.status(400).json({ error: "Missing itineraryId or placeId" });
+  } catch (err) {
+    console.error("❌ Error in /favorites/check:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
 app.listen(3000, () =>
   console.log("🟢 Server running at http://localhost:3000")
 );

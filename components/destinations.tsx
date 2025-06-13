@@ -65,14 +65,7 @@ const DestinationCard: React.FC<{
       onPress={() =>
         router.push({
           pathname: "/destination",
-          params: {
-            name: item.name,
-            photo_url: item.photo_url ?? "",
-            rating: item.rating?.toString() ?? "",
-            address: item.address ?? "",
-            lat: item.latitude?.toString() ?? "",
-            lng: item.longitude?.toString() ?? "",
-          },
+          params: { placeId: item.place_id },
         })
       }
       style={{

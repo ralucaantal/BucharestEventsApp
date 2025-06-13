@@ -18,6 +18,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Feather, FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { theme } from "../theme";
 import { BASE_URL } from "../constants";
+import { useFocusEffect } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ios = Platform.OS === "ios";
 const topMargin = ios ? 0 : 40;
@@ -35,8 +37,61 @@ const DestinationScreen: React.FC = () => {
       : "";
 
   const [isFavourite, toggleFavourite] = useState(false);
+
+  const handleToggleFavorite = async () => {
+    const newStatus = !isFavourite;
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const userDataString = await AsyncStorage.getItem("user");
+      if (!token || !userDataString) return;
+
+      const user = JSON.parse(userDataString);
+
+      await fetch(`${BASE_URL}/favorites/places`, {
+        method: newStatus ? "POST" : "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          placeId,
+        }),
+      });
+
+      toggleFavourite(newStatus);
+    } catch (err) {
+      console.error("❌ Favorite toggle failed", err);
+    }
+  };
+
   const [place, setPlace] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const checkIfFavorite = async () => {
+        try {
+          const userDataString = await AsyncStorage.getItem("user");
+          if (!userDataString || !placeId) return;
+          const user = JSON.parse(userDataString);
+
+          const res = await fetch(`${BASE_URL}/favorites/check/places`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId: user.id, placeId }),
+          });
+
+          const data = await res.json();
+          if (typeof data === "boolean") toggleFavourite(data);
+        } catch (err) {
+          console.error("❌ Error checking favorite status", err);
+        }
+      };
+
+      checkIfFavorite();
+    }, [placeId])
+  );
 
   useEffect(() => {
     const fetchPlace = async () => {
@@ -107,7 +162,7 @@ const DestinationScreen: React.FC = () => {
         </TouchableOpacity>
         <TouchableOpacity
           className="p-2 rounded-full bg-white/50"
-          onPress={() => toggleFavourite(!isFavourite)}>
+          onPress={handleToggleFavorite}>
           <FontAwesome
             name="heart"
             size={28}
