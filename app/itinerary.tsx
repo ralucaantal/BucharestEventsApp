@@ -251,13 +251,19 @@ const ItineraryDetailScreen: React.FC = () => {
             </Text>
             <View className="space-y-8 pb-10">
               {itinerary.places.map((place: any, idx: number) => (
-                <View
+                <TouchableOpacity
                   key={idx}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/destination",
+                      params: { placeId: place.place_id },
+                    })
+                  }
                   style={{ marginBottom: 15 }}
                   className="border border-gray-200 bg-gray-50 rounded-xl px-5 py-4 shadow-sm">
                   <Text className="font-semibold text-sm text-gray-800">
                     {place.time ? `🕒 ${place.time} · ` : ""}
-                    {place.place || place.name}
+                    {place.name}
                   </Text>
                   {place.note && (
                     <Text className="text-sm text-gray-500 mt-0.5">
@@ -274,7 +280,7 @@ const ItineraryDetailScreen: React.FC = () => {
                       {place.description}
                     </Text>
                   )}
-                </View>
+                </TouchableOpacity>
               ))}
             </View>
 

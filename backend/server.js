@@ -589,8 +589,8 @@ app.get("/itineraries/:id", async (req, res) => {
 
     const placesResult = await pool.query(
       `SELECT
-         ip.time, ip.note, ip.instructions, ip.order,
-         p.name, p.latitude, p.longitude
+        ip.time, ip.note, ip.instructions, ip.order,
+        p.name, p.latitude, p.longitude, p.place_id
        FROM itinerary_places ip
        JOIN places p ON ip.place_id = p.place_id
        WHERE ip.itinerary_id = $1
@@ -737,6 +737,36 @@ app.get("/reviews/itineraries/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch reviews" });
   } finally {
     client.release();
+  }
+});
+
+app.post("/places/details", async (req, res) => {
+  const { placeId } = req.body;
+
+  if (!placeId) {
+    return res.status(400).json({ error: "Missing placeId" });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT 
+         place_id, name, address, latitude, longitude, rating, types,
+         photo_url, user_ratings_total, price_level, business_status,
+         opening_hours,
+         google_maps_url
+       FROM places
+       WHERE place_id = $1`,
+      [placeId]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Place not found" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("❌ Error fetching place details:", err);
+    res.status(500).json({ error: "Failed to fetch place details" });
   }
 });
 

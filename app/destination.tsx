@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,12 +10,14 @@ import {
   Dimensions,
   Linking,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Feather, FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { theme } from "../theme";
+import { BASE_URL } from "../constants";
 
 const ios = Platform.OS === "ios";
 const topMargin = ios ? 0 : 40;
@@ -24,8 +26,7 @@ const { width, height } = Dimensions.get("window");
 const DestinationScreen: React.FC = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const [isFavourite, toggleFavourite] = useState(false);
-
+  console.log(params);
   const placeId =
     typeof params.placeId === "string"
       ? params.placeId
@@ -33,30 +34,31 @@ const DestinationScreen: React.FC = () => {
       ? params.placeId[0]
       : "";
 
-  const name =
-    typeof params.name === "string"
-      ? params.name
-      : Array.isArray(params.name)
-      ? params.name[0]
-      : "";
+  const [isFavourite, toggleFavourite] = useState(false);
+  const [place, setPlace] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const address =
-    typeof params.address === "string"
-      ? params.address
-      : Array.isArray(params.address)
-      ? params.address[0]
-      : "";
+  useEffect(() => {
+    const fetchPlace = async () => {
+      try {
+        const res = await fetch(`${BASE_URL}/places/details`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ placeId }),
+        });
 
-  const item = {
-    placeId,
-    image: params.photo_url,
-    name: params.name,
-    rating: Number(params.rating),
-    address: params.address,
-    lat: Number(params.lat),
-    lng: Number(params.lng),
-    description: `Discover the charm of ${params.name} located in Bucharest.`,
-  };
+        const data = await res.json();
+        setPlace(data);
+      } catch (err) {
+        console.error("❌ Failed to fetch place details", err);
+        Alert.alert("Error", "Could not load place details.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (placeId) fetchPlace();
+  }, [placeId]);
 
   function openGoogleMapsPlaceByName(name: string, address: string) {
     const query = `${name}, ${address}, București`;
@@ -70,11 +72,19 @@ const DestinationScreen: React.FC = () => {
     });
   }
 
+  if (loading || !place) {
+    return (
+      <View className="flex-1 justify-center items-center bg-white">
+        <ActivityIndicator size="large" color="#9333ea" />
+      </View>
+    );
+  }
+
   return (
     <View className="flex-1 bg-white">
-      {item.image ? (
+      {place.photo_url ? (
         <Image
-          source={{ uri: item.image as string }}
+          source={{ uri: place.photo_url }}
           style={{ width, height: height * 0.55 }}
         />
       ) : (
@@ -119,31 +129,33 @@ const DestinationScreen: React.FC = () => {
           {/* Title + Rating */}
           <View className="flex-row justify-between items-start">
             <Text className="text-[26px] font-bold text-gray-700 flex-1">
-              {item.name}
+              {place.name}
             </Text>
             <Text
               className="text-[22px] font-semibold"
               style={{ color: theme.text }}>
-              ⭐ {item.rating?.toFixed(1) ?? "N/A"}
+              ⭐ {place.rating ? Number(place.rating).toFixed(1) : "N/A"}
             </Text>
           </View>
 
           {/* Description */}
-          <Text className="text-[15px] text-gray-700 mt-[10px] mb-[15px] leading-[22px]">
-            {item.description}
-          </Text>
+          {place.description && (
+            <Text className="text-[15px] text-gray-700 mt-[10px] mb-[15px] leading-[22px]">
+              {place.description}
+            </Text>
+          )}
 
           {/* Address */}
           <View className="flex-row items-start gap-2 mb-6">
             <MaterialIcons name="location-pin" size={24} color="#f87171" />
             <Text className="text-[16px] text-gray-600 flex-1">
-              {item.address}
+              {place.address}
             </Text>
           </View>
 
           {/* Navigate button */}
           <TouchableOpacity
-            onPress={() => openGoogleMapsPlaceByName(name, address)}
+            onPress={() => openGoogleMapsPlaceByName(place.name, place.address)}
             className="h-[50px] rounded-full justify-center items-center mb-6 self-center"
             style={{
               width: width * 0.55,
