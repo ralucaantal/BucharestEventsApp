@@ -643,17 +643,17 @@ app.delete("/favorites/itineraries", async (req, res) => {
 });
 
 app.post("/reviews/itineraries", async (req, res) => {
-  const { userId, itineraryId, rating, comment } = req.body;
+  const { userId, itineraryId, rating, comment, anonymous } = req.body;
   const client = await pool.connect();
 
   try {
     await client.query("BEGIN");
 
-    // 1. Inserare review
+    // 1. Inserare review cu flag-ul anonymous
     await client.query(
-      `INSERT INTO itinerary_reviews (user_id, itinerary_id, rating, comment)
-       VALUES ($1, $2, $3, $4)`,
-      [userId, itineraryId, rating, comment]
+      `INSERT INTO itinerary_reviews (user_id, itinerary_id, rating, comment, anonymous)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [userId, itineraryId, rating, comment, anonymous || false]
     );
 
     // 2. Recalculare medie rating
@@ -711,6 +711,32 @@ app.post("/favorites/check", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Database error" });
+  }
+});
+
+app.get("/reviews/itineraries/:id", async (req, res) => {
+  const itineraryId = req.params.id;
+  const client = await pool.connect();
+
+  try {
+    const result = await client.query(
+      `
+      SELECT r.rating, r.comment, r.anonymous,
+             CASE WHEN r.anonymous THEN 'Anonymous' ELSE u.username END AS username
+      FROM itinerary_reviews r
+      JOIN users u ON r.user_id = u.id
+      WHERE r.itinerary_id = $1
+      ORDER BY r.created_at DESC
+    `,
+      [itineraryId]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Failed to fetch reviews:", err);
+    res.status(500).json({ error: "Failed to fetch reviews" });
+  } finally {
+    client.release();
   }
 });
 
