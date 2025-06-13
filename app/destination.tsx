@@ -24,11 +24,34 @@ const { width, height } = Dimensions.get("window");
 const DestinationScreen: React.FC = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
+  console.log("👉 PARAMS:", params);
   const [isFavourite, toggleFavourite] = useState(false);
 
+  const placeId =
+    typeof params.placeId === "string"
+      ? params.placeId
+      : Array.isArray(params.placeId)
+      ? params.placeId[0]
+      : "";
+
+  const name =
+    typeof params.name === "string"
+      ? params.name
+      : Array.isArray(params.name)
+      ? params.name[0]
+      : "";
+
+  const address =
+    typeof params.address === "string"
+      ? params.address
+      : Array.isArray(params.address)
+      ? params.address[0]
+      : "";
+
   const item = {
+    placeId,
     image: params.photo_url,
-    title: params.name,
+    name: params.name,
     rating: Number(params.rating),
     address: params.address,
     lat: Number(params.lat),
@@ -36,25 +59,16 @@ const DestinationScreen: React.FC = () => {
     description: `Discover the charm of ${params.name} located in Bucharest.`,
   };
 
-  function openNavigationApp(lat: number, lon: number, label: string) {
-    const iosUrl = `maps://?daddr=${lat},${lon}&dirflg=d`;
-    const androidUrl = `google.navigation:q=${lat},${lon}`;
-    const webUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}&travelmode=driving`;
+  function openGoogleMapsPlaceByName(name: string, address: string) {
+    const query = `${name}, ${address}, București`;
+    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+      query
+    )}`;
 
-    const url = Platform.OS === "ios" ? iosUrl : androidUrl;
-
-    Linking.canOpenURL(url)
-      .then((supported) => {
-        if (supported) {
-          Linking.openURL(url);
-        } else {
-          return Linking.openURL(webUrl);
-        }
-      })
-      .catch((err) => {
-        console.error("Navigation error:", err);
-        Alert.alert("Error", "Could not open navigation app.");
-      });
+    Linking.openURL(url).catch((err) => {
+      console.error("❌ Failed to open Google Maps:", err);
+      Alert.alert("Error", "Could not open Google Maps.");
+    });
   }
 
   return (
@@ -106,7 +120,7 @@ const DestinationScreen: React.FC = () => {
           {/* Title + Rating */}
           <View className="flex-row justify-between items-start">
             <Text className="text-[26px] font-bold text-gray-700 flex-1">
-              {item.title}
+              {item.name}
             </Text>
             <Text
               className="text-[22px] font-semibold"
@@ -130,15 +144,15 @@ const DestinationScreen: React.FC = () => {
 
           {/* Navigate button */}
           <TouchableOpacity
-            onPress={() =>
-              openNavigationApp(item.lat, item.lng, item.title[0])
-            }
+            onPress={() => openGoogleMapsPlaceByName(name, address)}
             className="h-[50px] rounded-full justify-center items-center mb-6 self-center"
             style={{
               width: width * 0.55,
-              backgroundColor: theme.bg(0.8),
+              backgroundColor: theme.buttons1,
             }}>
-            <Text className="text-white font-bold text-[17px]">Navigate</Text>
+            <Text className="text-white font-bold text-[17px]">
+              Open on Google Maps
+            </Text>
           </TouchableOpacity>
         </ScrollView>
       </View>

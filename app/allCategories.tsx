@@ -136,6 +136,7 @@ const AllCategoriesScreen: React.FC = () => {
                   router.push({
                     pathname: "/destination",
                     params: {
+                      placeId: place.place_id,
                       name: place.name,
                       photo_url: place.photo_url ?? "",
                       rating: place.rating?.toString() ?? "",
