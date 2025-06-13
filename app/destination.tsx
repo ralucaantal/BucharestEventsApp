@@ -24,7 +24,6 @@ const { width, height } = Dimensions.get("window");
 const DestinationScreen: React.FC = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
-  console.log("👉 PARAMS:", params);
   const [isFavourite, toggleFavourite] = useState(false);
 
   const placeId =
