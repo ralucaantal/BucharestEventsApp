@@ -13,6 +13,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { BASE_URL } from "../constants";
+import { theme } from "../theme";
 
 type User = {
   id: number;
@@ -26,6 +27,7 @@ const AdminDashboardScreen = () => {
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAllUsers, setShowAllUsers] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -105,20 +107,38 @@ const AdminDashboardScreen = () => {
             No users found.
           </Text>
         ) : (
-          users.map((user) => (
-            <View
-              key={user.id}
-              className="bg-gray-100 p-4 rounded-xl mb-4 shadow-sm">
-              <Text className="text-lg font-semibold text-gray-800">
-                {user.username}
-              </Text>
-              <Text className="text-gray-600 mt-1">Email: {user.email}</Text>
-              <Text className="text-gray-500 mt-1">Role: {user.role}</Text>
-              <Text className="text-gray-400 mt-1">
-                Joined: {formatDate(user.created_at)}
-              </Text>
-            </View>
-          ))
+          <>
+            {users.slice(0, showAllUsers ? users.length : 2).map((user) => (
+              <View
+                key={user.id}
+                className="bg-gray-100 p-4 rounded-xl mb-4 shadow-sm">
+                <Text className="text-lg font-semibold text-gray-800">
+                  {user.username}
+                </Text>
+                <Text className="text-gray-600 mt-1">Email: {user.email}</Text>
+                <Text className="text-gray-500 mt-1">Role: {user.role}</Text>
+                <Text className="text-gray-400 mt-1">
+                  Joined: {formatDate(user.created_at)}
+                </Text>
+              </View>
+            ))}
+            {users.length > 2 && (
+              <TouchableOpacity
+                onPress={() => setShowAllUsers(!showAllUsers)}
+                className="self-center py-1 px-2 rounded-lg mb-4"
+                style={{
+                  backgroundColor: showAllUsers ? "#fee2e2" : theme.buttons1,
+                }}>
+                <Text
+                  className="font-medium"
+                  style={{
+                    color: showAllUsers ? "#b91c1c" : "#ffffff",
+                  }}>
+                  {showAllUsers ? "Cancel" : "See more"}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </>
         )}
 
         {/* Section 2: Requests (static for now) */}
