@@ -861,6 +861,7 @@ app.put("/users/:id", async (req, res) => {
         id: updatedUser.id,
         username: updatedUser.username,
         email: updatedUser.email,
+        role: updatedUser.role,
       },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
@@ -903,6 +904,7 @@ app.put("/users/:id/password", async (req, res) => {
       id: user.id,
       username: user.username,
       email: user.email,
+      role: user.role,
     };
 
     const newToken = jwt.sign(updatedUser, process.env.JWT_SECRET, {

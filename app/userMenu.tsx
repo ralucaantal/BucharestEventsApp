@@ -26,8 +26,9 @@ const UserMenuScreen: React.FC = () => {
       const userData = await AsyncStorage.getItem("user");
       if (userData) {
         const parsed = JSON.parse(userData);
+        console.log(userData);
         setUsername(parsed.username || "");
-        setAccountType(parsed.accountType || "");
+        setAccountType(parsed.role || "");
       }
     };
     loadUser();
@@ -61,6 +62,13 @@ const UserMenuScreen: React.FC = () => {
           />
           <Text className="text-xl font-bold text-gray-800">{username}</Text>
           <Text className="text-sm text-gray-500 mt-1">Welcome back 👋</Text>
+          {accountType ? (
+            <Text
+              className="text-sm font-medium capitalize mt-1"
+              style={{ color: theme.buttons1 }}>
+              {accountType}
+            </Text>
+          ) : null}
         </View>
 
         {/* Menu Options */}
