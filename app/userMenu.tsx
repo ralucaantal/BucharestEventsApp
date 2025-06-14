@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -6,8 +7,8 @@ import {
   Image,
   ScrollView,
   Dimensions,
-  SafeAreaView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -40,97 +41,58 @@ const UserMenuScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
+    <SafeAreaView className="flex-1 bg-white">
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
-      >
+        contentContainerStyle={{ paddingBottom: 40 }}>
         {/* Header */}
-        <View style={{ flexDirection: "row", alignItems: "center", padding: 20 }}>
+        <View className="flex-row items-center px-5 pt-4">
           <TouchableOpacity
             onPress={() => router.back()}
-            style={{
-              padding: 10,
-              backgroundColor: "#f3f4f6",
-              borderRadius: 999,
-              marginRight: 10,
-            }}
-          >
+            className="p-2 bg-gray-100 rounded-full mr-3">
             <Feather name="chevron-left" size={24} color="#1f2937" />
           </TouchableOpacity>
-          <View>
-            <Text style={{ fontSize: 24, fontWeight: "bold", color: "#1f2937" }}>
-              Settings
-            </Text>
-          </View>
+          <Text className="text-2xl font-bold text-gray-800">Settings</Text>
         </View>
 
         {/* Avatar and username */}
-        <View style={{ alignItems: "center", marginVertical: 20 }}>
+        <View className="items-center mt-8 mb-6">
           <Image
             source={require("../assets/images/avatar.png")}
-            style={{
-              height: 100,
-              width: 100,
-              borderRadius: 50,
-              marginBottom: 10,
-            }}
+            className="w-24 h-24 rounded-full mb-3"
           />
-          <Text style={{ fontSize: 20, fontWeight: "bold" }}>{username}</Text>
+          <Text className="text-xl font-bold text-gray-800">{username}</Text>
         </View>
 
         {/* Menu Options */}
-        <View style={{ paddingHorizontal: 20, gap: 16 }}>
-          <TouchableOpacity onPress={() => alert("My Profile")}
-            style={optionStyle}>
-            <Text style={optionText}>My Profile</Text>
+        <View className="px-5 mt-3">
+          <TouchableOpacity
+            onPress={() => alert("My Profile")}
+            className="bg-gray-100 p-4 rounded-xl shadow-sm mb-6">
+            <Text className="text-base text-gray-800">My Profile</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => alert("Settings")}
-            style={optionStyle}>
-            <Text style={optionText}>Settings</Text>
+          <TouchableOpacity
+            onPress={() => alert("Settings")}
+            className="bg-gray-100 p-4 rounded-xl shadow-sm mb-6">
+            <Text className="text-base text-gray-800">Settings</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => alert("Help & Support")}
-            style={optionStyle}>
-            <Text style={optionText}>Help & Support</Text>
+          <TouchableOpacity
+            onPress={() => alert("Help & Support")}
+            className="bg-gray-100 p-4 rounded-xl shadow-sm">
+            <Text className="text-base text-gray-800">Help & Support</Text>
           </TouchableOpacity>
         </View>
 
         {/* Logout Button */}
         <TouchableOpacity
           onPress={handleLogout}
-          style={{
-            marginTop: 40,
-            backgroundColor: theme.text,
-            paddingVertical: 12,
-            borderRadius: 999,
-            marginHorizontal: 20,
-          }}
-        >
-          <Text
-            style={{
-              textAlign: "center",
-              color: "white",
-              fontWeight: "bold",
-              fontSize: 16,
-            }}
-          >
-            Log Out
-          </Text>
+          className="mt-10 py-3 px-6 rounded-full self-center"
+          style={{ backgroundColor: theme.buttons1 }}>
+          <Text className="text-white font-bold text-base">Log Out</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
-};
-
-const optionStyle = {
-  backgroundColor: "#f3f4f6",
-  padding: 16,
-  borderRadius: 12,
-};
-
-const optionText = {
-  fontSize: 16,
-  color: "#1f2937",
 };
 
 export default UserMenuScreen;
