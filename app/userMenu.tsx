@@ -7,12 +7,14 @@ import {
   Image,
   ScrollView,
   Dimensions,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Feather, FontAwesome5, MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { theme } from "../theme";
+import { BASE_URL } from "../constants";
 
 const { width } = Dimensions.get("window");
 
@@ -20,6 +22,8 @@ const UserMenuScreen: React.FC = () => {
   const router = useRouter();
   const [username, setUsername] = useState("User");
   const [accountType, setAccountType] = useState("");
+  const [showRequestForm, setShowRequestForm] = useState(false);
+  const [requestReason, setRequestReason] = useState("");
 
   useEffect(() => {
     const loadUser = async () => {
@@ -81,6 +85,97 @@ const UserMenuScreen: React.FC = () => {
           </TouchableOpacity>
 
           <TouchableOpacity
+            onPress={() => setShowRequestForm(true)}
+            className="bg-gray-100 flex-row items-center p-4 rounded-xl shadow-sm mb-6">
+            <FontAwesome5 name="user-check" size={18} color="#1f2937" />
+            <Text className="text-base text-gray-800 ml-3">
+              Request Local Account
+            </Text>
+          </TouchableOpacity>
+
+          {showRequestForm && (
+            <View className="px-5 mb-6">
+              <View className="bg-gray-100 rounded-xl px-4 py-3 shadow-sm">
+                <Text className="text-gray-800 text-sm font-medium mb-2">
+                  Why do you want to become a local?
+                </Text>
+                <TextInput
+                  value={requestReason}
+                  onChangeText={setRequestReason}
+                  placeholder="Explain your reason..."
+                  placeholderTextColor="#9ca3af"
+                  multiline
+                  textAlignVertical="top"
+                  className="text-gray-800 text-base"
+                  style={{ minHeight: 80 }}
+                />
+              </View>
+
+              <View className="flex-row justify-between mt-4">
+                <TouchableOpacity
+                  onPress={async () => {
+                    if (!requestReason.trim()) {
+                      alert("Please provide a reason");
+                      return;
+                    }
+
+                    try {
+                      const token = await AsyncStorage.getItem("token");
+                      const userData = await AsyncStorage.getItem("user");
+                      const parsed = userData ? JSON.parse(userData) : null;
+
+                      const res = await fetch(
+                        `${BASE_URL}/requests/local-account`,
+                        {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                          },
+                          body: JSON.stringify({
+                            userId: parsed.id,
+                            reason: requestReason,
+                          }),
+                        }
+                      );
+
+                      if (!res.ok) throw new Error("Request failed");
+
+                      alert("Request sent successfully!");
+                      setShowRequestForm(false);
+                      setRequestReason("");
+                    } catch (err) {
+                      console.error("❌ Request error:", err);
+                      alert("Something went wrong. Please try again.");
+                    }
+                  }}
+                  className="flex-1 mr-2 py-3 rounded-xl items-center shadow-sm"
+                  style={{ backgroundColor: theme.buttons1 }}>
+                  <Text className="text-white font-bold text-base">Submit</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowRequestForm(false);
+                    setRequestReason("");
+                  }}
+                  className="flex-1 ml-2 py-3 rounded-xl items-center bg-gray-300 shadow-sm">
+                  <Text className="text-gray-800 font-bold text-base">
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          <TouchableOpacity
+            onPress={() => router.push("/myRequests")}
+            className="bg-gray-100 flex-row items-center p-4 rounded-xl shadow-sm mb-6">
+            <Feather name="inbox" size={20} color="#1f2937" />
+            <Text className="text-base text-gray-800 ml-3">My Requests</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             onPress={() => alert("App Settings")}
             className="bg-gray-100 flex-row items-center p-4 rounded-xl shadow-sm mb-6">
             <Feather name="settings" size={20} color="#1f2937" />
@@ -105,7 +200,7 @@ const UserMenuScreen: React.FC = () => {
         {/* Logout Button */}
         <TouchableOpacity
           onPress={handleLogout}
-          className="mt-10 py-3 px-8 rounded-full self-center shadow"
+          className="mt-10 py-3 px-8 rounded-full self-center shadow mb-8"
           style={{ backgroundColor: theme.buttons1 }}>
           <Text className="text-white font-bold text-base">Log Out</Text>
         </TouchableOpacity>

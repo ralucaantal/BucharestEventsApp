@@ -918,6 +918,51 @@ app.put("/users/:id/password", async (req, res) => {
   }
 });
 
+app.post("/requests/local-account", async (req, res) => {
+  const { userId, reason } = req.body;
+
+  if (!userId || !reason?.trim()) {
+    return res.status(400).json({ error: "Missing userId or reason" });
+  }
+
+  try {
+    await pool.query(
+      `INSERT INTO local_account_requests (user_id, reason)
+       VALUES ($1, $2)`,
+      [userId, reason.trim()]
+    );
+
+    return res.status(200).json({ message: "Request submitted successfully" });
+  } catch (err) {
+    console.error("❌ Error inserting request:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get("/requests/mine", async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: "No token provided" });
+
+  try {
+    const token = auth.split(" ")[1];
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = payload.id;
+
+    const result = await pool.query(
+      `SELECT id, reason, status, created_at
+       FROM local_account_requests
+       WHERE user_id = $1
+       ORDER BY created_at DESC`,
+      [userId]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Error verifying token or fetching data:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 app.listen(3000, () =>
   console.log("🟢 Server running at http://localhost:3000")
 );
