@@ -15,6 +15,7 @@ import { useRouter } from "expo-router";
 import Categories from "../components/categories";
 import Destinations from "../components/destinations";
 import QuickActions from "@/components/QuickActions";
+import LocalActions from "@/components/LocalActions";
 import CategorySelector from "../components/categorySelector";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { StatusBar } from "expo-status-bar";
@@ -22,7 +23,9 @@ import { StatusBar } from "expo-status-bar";
 const HomeScreen: React.FC = () => {
   const router = useRouter();
   const [activeCategory, setActiveCategory] = useState("Popular");
-  const [user, setUser] = useState<{ username: string } | null>(null);
+  const [user, setUser] = useState<{ username: string; role: string } | null>(
+    null
+  );
 
   useEffect(() => {
     const checkLogin = async () => {
@@ -45,11 +48,10 @@ const HomeScreen: React.FC = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-        <StatusBar style="dark" backgroundColor="white" />
+      <StatusBar style="dark" backgroundColor="white" />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}>
-        
         {/* Header */}
         <View className="flex-row justify-between items-center px-5 pt-5 pb-3">
           <View>
@@ -84,6 +86,13 @@ const HomeScreen: React.FC = () => {
         <View className="mb-4">
           <QuickActions />
         </View>
+
+        {/* Local Actions */}
+        {user?.role === "local" && (
+          <View className="mb-4">
+            <LocalActions />
+          </View>
+        )}
 
         {/* Categories */}
         <View className="mb-4">
