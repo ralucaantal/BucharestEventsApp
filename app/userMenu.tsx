@@ -19,20 +19,18 @@ const { width } = Dimensions.get("window");
 const UserMenuScreen: React.FC = () => {
   const router = useRouter();
   const [username, setUsername] = useState("User");
+  const [accountType, setAccountType] = useState("");
 
   useEffect(() => {
-    const loadUsername = async () => {
+    const loadUser = async () => {
       const userData = await AsyncStorage.getItem("user");
       if (userData) {
-        try {
-          const parsed = JSON.parse(userData);
-          setUsername(parsed.username || "User");
-        } catch (e) {
-          console.error("Failed to parse user data", e);
-        }
+        const parsed = JSON.parse(userData);
+        setUsername(parsed.username || "");
+        setAccountType(parsed.accountType || "");
       }
     };
-    loadUsername();
+    loadUser();
   }, []);
 
   const handleLogout = async () => {

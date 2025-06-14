@@ -830,6 +830,92 @@ app.get("/local-tips", async (req, res) => {
   }
 });
 
+app.put("/users/:id", async (req, res) => {
+  const userId = req.params.id;
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ error: "Missing username or password" });
+  }
+
+  try {
+    const userRes = await pool.query("SELECT * FROM users WHERE id = $1", [
+      userId,
+    ]);
+    const user = userRes.rows[0];
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(401).json({ error: "Invalid password" });
+
+    const updateRes = await pool.query(
+      "UPDATE users SET username = $1 WHERE id = $2 RETURNING id, username, email",
+      [username, userId]
+    );
+
+    const updatedUser = updateRes.rows[0];
+
+    const newToken = jwt.sign(
+      {
+        id: updatedUser.id,
+        username: updatedUser.username,
+        email: updatedUser.email,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    return res.json({ user: updatedUser, token: newToken });
+  } catch (err) {
+    console.error("❌ Error updating username:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.put("/users/:id/password", async (req, res) => {
+  const userId = req.params.id;
+  const { oldPassword, newPassword } = req.body;
+
+  if (!oldPassword || !newPassword) {
+    return res.status(400).json({ error: "Missing passwords" });
+  }
+
+  try {
+    const userRes = await pool.query("SELECT * FROM users WHERE id = $1", [
+      userId,
+    ]);
+    const user = userRes.rows[0];
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch)
+      return res.status(401).json({ error: "Invalid current password" });
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await pool.query("UPDATE users SET password = $1 WHERE id = $2", [
+      hashedPassword,
+      userId,
+    ]);
+
+    const updatedUser = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+    };
+
+    const newToken = jwt.sign(updatedUser, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    return res.json({ success: true, token: newToken });
+  } catch (err) {
+    console.error("❌ Error updating password:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 app.listen(3000, () =>
   console.log("🟢 Server running at http://localhost:3000")
 );
