@@ -14,12 +14,12 @@ import { Feather } from "@expo/vector-icons";
 import { theme } from "../theme";
 import { BASE_URL } from "../constants";
 
-  type RequestType = {
-    id: number;
-    status: string;
-    created_at: string;
-    reason?: string;
-  };
+type RequestType = {
+  id: number;
+  status: string;
+  created_at: string;
+  reason?: string;
+};
 
 const MyRequestsScreen: React.FC = () => {
   const router = useRouter();
@@ -58,6 +58,25 @@ const MyRequestsScreen: React.FC = () => {
     });
   };
 
+  const deleteRequest = async (id: number) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const res = await fetch(`${BASE_URL}/requests/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error("Delete failed");
+
+      setRequests((prev) => prev.filter((r) => r.id !== id));
+    } catch (err) {
+      console.error("❌ Error deleting request:", err);
+      alert("Failed to delete request");
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
@@ -81,7 +100,7 @@ const MyRequestsScreen: React.FC = () => {
             {requests.map((request, index) => (
               <View
                 key={index}
-                className="bg-gray-100 p-4 rounded-xl shadow-sm">
+                className="bg-gray-100 p-4 rounded-xl shadow-sm mb-4">
                 <Text className="text-sm text-gray-500 mt-1">
                   Status:{" "}
                   <Text
@@ -105,6 +124,13 @@ const MyRequestsScreen: React.FC = () => {
                     Reason: {request.reason}
                   </Text>
                 )}
+                <TouchableOpacity
+                  onPress={() => deleteRequest(request.id)}
+                  className="absolute top-2 right-2 bg-red-100 px-2 py-1 rounded-full">
+                  <Text className="text-red-700 text-xs font-medium">
+                    Delete
+                  </Text>
+                </TouchableOpacity>
               </View>
             ))}
           </View>

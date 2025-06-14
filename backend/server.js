@@ -1097,6 +1097,35 @@ app.post("/requests/local-account/:id/reject", async (req, res) => {
   }
 });
 
+app.delete("/requests/:id", async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: "No token provided" });
+
+  try {
+    const token = auth.split(" ")[1];
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = payload.id;
+    const requestId = parseInt(req.params.id, 10);
+
+    // Verificăm dacă cererea aparține utilizatorului
+    const result = await pool.query(
+      `DELETE FROM local_account_requests
+       WHERE id = $1 AND user_id = $2
+       RETURNING *`,
+      [requestId, userId]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Request not found or not yours" });
+    }
+
+    res.status(204).send(); // No Content
+  } catch (err) {
+    console.error("❌ Error deleting request:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 app.listen(3000, () =>
   console.log("🟢 Server running at http://localhost:3000")
 );
