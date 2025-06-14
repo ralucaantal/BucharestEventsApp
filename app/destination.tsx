@@ -28,7 +28,6 @@ const { width, height } = Dimensions.get("window");
 const DestinationScreen: React.FC = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
-  console.log(params);
   const placeId =
     typeof params.placeId === "string"
       ? params.placeId
