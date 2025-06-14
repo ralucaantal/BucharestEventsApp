@@ -32,6 +32,16 @@ type LocalRequest = {
   created_at: string;
 };
 
+type SuggestionRequest = {
+  id: number;
+  username: string;
+  email: string;
+  title: string;
+  theme: string;
+  status: string;
+  created_at: string;
+};
+
 const AdminDashboardScreen = () => {
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
@@ -39,6 +49,10 @@ const AdminDashboardScreen = () => {
   const [showAllUsers, setShowAllUsers] = useState(false);
   const [localRequests, setLocalRequests] = useState<LocalRequest[]>([]);
   const [showAllLocalRequests, setShowAllLocalRequests] = useState(false);
+  const [suggestionRequests, setSuggestionRequests] = useState<
+    SuggestionRequest[]
+  >([]);
+  const [showAllSuggestions, setShowAllSuggestions] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -55,6 +69,21 @@ const AdminDashboardScreen = () => {
       console.error("❌ Failed to fetch users:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchItineraryRequests = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const res = await fetch(`${BASE_URL}/requests/itinerary-suggestions`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch suggestions");
+      const data = await res.json();
+      setSuggestionRequests(data);
+    } catch (err) {
+      console.error("❌ Failed to fetch suggestion requests:", err);
     }
   };
 
@@ -93,6 +122,7 @@ const AdminDashboardScreen = () => {
     checkRole();
     fetchUsers();
     fetchLocalRequests();
+    fetchItineraryRequests();
   }, []);
 
   const formatDate = (iso: string) =>
@@ -166,7 +196,9 @@ const AdminDashboardScreen = () => {
                   {user.username}
                 </Text>
                 <Text className="text-gray-600 mt-1">Email: {user.email}</Text>
-                <Text className="text-gray-500 mt-1">Role: {user.role}</Text>
+                <Text className="text-gray-500 mt-1 italic">
+                  Role: {user.role}
+                </Text>
                 <Text className="text-gray-400 mt-1">
                   Joined: {formatDate(user.created_at)}
                 </Text>
@@ -218,28 +250,40 @@ const AdminDashboardScreen = () => {
                   <Text className="text-gray-400 mt-1">
                     Requested: {formatDate(request.created_at)}
                   </Text>
+                  {request.status === "pending" ? (
+                    <View className="flex-row mt-3 space-x-5">
+                      <TouchableOpacity
+                        className="bg-green-100 px-3 py-1 rounded-lg"
+                        onPress={() => handleDecision(request.id, "accept")}>
+                        <Text className="text-green-700 font-medium">
+                          Accept
+                        </Text>
+                      </TouchableOpacity>
 
-                  <View className="flex-row mt-3 space-x-5">
-                    <TouchableOpacity
-                      className="bg-green-100 px-3 py-1 rounded-lg"
-                      onPress={() => handleDecision(request.id, "accept")}>
-                      <Text className="text-green-700 font-medium">Accept</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      className="bg-red-100 px-3 py-1 rounded-lg"
-                      onPress={() => handleDecision(request.id, "reject")}>
-                      <Text className="text-red-700 font-medium">Reject</Text>
-                    </TouchableOpacity>
-                  </View>
+                      <TouchableOpacity
+                        className="bg-red-100 px-3 py-1 rounded-lg"
+                        onPress={() => handleDecision(request.id, "reject")}>
+                        <Text className="text-red-700 font-medium">Reject</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <Text
+                      className={`mt-3 font-semibold ${
+                        request.status === "accepted"
+                          ? "text-green-700"
+                          : "text-red-700"
+                      }`}>
+                      Status:{" "}
+                      {request.status.charAt(0).toUpperCase() +
+                        request.status.slice(1)}
+                    </Text>
+                  )}
                 </View>
               ))}
 
             {localRequests.length > 2 && (
               <TouchableOpacity
-                onPress={() =>
-                  setShowAllLocalRequests(!showAllLocalRequests)
-                }
+                onPress={() => setShowAllLocalRequests(!showAllLocalRequests)}
                 className="self-center py-1 px-2 rounded-lg mb-4"
                 style={{
                   backgroundColor: showAllLocalRequests
@@ -252,6 +296,86 @@ const AdminDashboardScreen = () => {
                     color: showAllLocalRequests ? "#b91c1c" : "#ffffff",
                   }}>
                   {showAllLocalRequests ? "Cancel" : "See more"}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </>
+        )}
+
+        <Text className="text-xl font-semibold text-gray-800 mt-6 mb-2">
+          Itinerary Suggestions:
+        </Text>
+
+        {suggestionRequests.length === 0 ? (
+          <Text className="text-gray-500 italic mb-4">
+            No suggestions found.
+          </Text>
+        ) : (
+          <>
+            {suggestionRequests
+              .slice(0, showAllSuggestions ? suggestionRequests.length : 2)
+              .map((req) => (
+                <View
+                  key={req.id}
+                  className="bg-gray-100 p-4 rounded-xl mb-4 shadow-sm">
+                  <View className="flex-row justify-between items-center mb-1">
+                    <Text className="text-lg font-semibold text-gray-800">
+                      {req.title}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() =>
+                    router.push({
+                      pathname: "/suggestedItinerary",
+                      params: { id: req.id },
+                    })
+                  }
+                      className="px-3 py-1.5 rounded-lg"
+                      style={{ backgroundColor: theme.buttons2 }}>
+                      <Text className="text-white font-medium text-sm">
+                        View details
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <Text className="text-gray-600 mt-1">Email: {req.email}</Text>
+                  <Text className="text-gray-500 mt-1 italic">
+                    Suggested by: {req.username}
+                  </Text>
+                  <Text className="text-gray-500 mt-1 italic">
+                    Theme: {req.theme}
+                  </Text>
+                  <Text className="text-gray-400 mt-1">
+                    Sent: {formatDate(req.created_at)}
+                  </Text>
+                  <Text
+                    className={`mt-3 font-semibold ${
+                      req.status === "pending"
+                        ? "text-yellow-600"
+                        : req.status === "accepted"
+                        ? "text-green-700"
+                        : "text-red-700"
+                    }`}>
+                    Status:{" "}
+                    {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
+                  </Text>
+                </View>
+              ))}
+
+            {suggestionRequests.length > 2 && (
+              <TouchableOpacity
+                onPress={() => setShowAllSuggestions(!showAllSuggestions)}
+                className="self-center py-1 px-2 rounded-lg mb-4"
+                style={{
+                  backgroundColor: showAllSuggestions
+                    ? "#fee2e2"
+                    : theme.buttons1,
+                }}>
+                <Text
+                  className="font-medium"
+                  style={{
+                    color: showAllSuggestions ? "#b91c1c" : "#ffffff",
+                  }}>
+                  {showAllSuggestions ? "Cancel" : "See more"}
                 </Text>
               </TouchableOpacity>
             )}

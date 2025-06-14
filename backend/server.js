@@ -1126,6 +1126,286 @@ app.delete("/requests/:id", async (req, res) => {
   }
 });
 
+app.post("/suggested-itineraries", async (req, res) => {
+  const {
+    title,
+    description,
+    difficulty,
+    startingTime,
+    budget,
+    duration,
+    theme,
+    tags,
+    stops,
+  } = req.body;
+
+  const firstStop = stops[0] || {};
+  const starting_point = firstStop.name; // sau ia dintr-un câmp stop.name dacă există
+  const latitude = firstStop.latitude;
+  const longitude = firstStop.longitude;
+
+  console.log(req.body);
+
+  if (
+    !title ||
+    !description ||
+    !startingTime ||
+    !starting_point ||
+    !latitude ||
+    !longitude ||
+    !Array.isArray(stops) ||
+    stops.length === 0
+  ) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    // 1. Insert into suggested_itineraries
+    const suggestionResult = await client.query(
+      `INSERT INTO suggested_itineraries (
+     title, description, difficulty, starting_time,
+     estimated_budget, duration_minutes, theme, tags,
+     starting_point, starting_lat, starting_lng, status, user_id
+   ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'pending',$12)
+   RETURNING id`,
+      [
+        title,
+        description,
+        difficulty,
+        startingTime,
+        budget || null,
+        duration || null,
+        theme || null,
+        tags || [],
+        starting_point,
+        latitude,
+        longitude,
+        userId, // <--- AICI
+      ]
+    );
+
+    const suggestionId = suggestionResult.rows[0].id;
+
+    // 2. Insert stops into suggested_itinerary_places
+    for (let i = 0; i < stops.length; i++) {
+      const stop = stops[i];
+      await client.query(
+        `INSERT INTO suggested_itinerary_places (
+           suggested_itinerary_id, place_id, "order", time, note, instructions
+         ) VALUES ($1, $2, $3, $4, $5, $6)`,
+        [
+          suggestionId,
+          stop.place_id,
+          i + 1,
+          stop.time || null,
+          stop.note || null,
+          stop.instructions || null,
+        ]
+      );
+    }
+
+    await client.query("COMMIT");
+    res.status(201).json({ message: "Suggestion submitted", id: suggestionId });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("❌ Failed to insert suggestion:", err);
+    res.status(500).json({ error: "Internal server error" });
+  } finally {
+    client.release();
+  }
+});
+
+app.get("/requests/itinerary-suggestions", async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: "No token provided" });
+
+  try {
+    const token = auth.split(" ")[1];
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = payload.id;
+
+    const userResult = await pool.query(
+      "SELECT role FROM users WHERE id = $1",
+      [userId]
+    );
+    if (userResult.rows.length === 0 || userResult.rows[0].role !== "admin") {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const result = await pool.query(`
+      SELECT sr.id, u.username, u.email, sr.title, sr.theme,sr.status, sr.created_at
+      FROM suggested_itineraries sr
+      JOIN users u ON sr.user_id = u.id
+      ORDER BY sr.created_at DESC
+    `);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Error fetching itinerary suggestions:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.post("/requests/itinerary-suggestions/:id/:action", async (req, res) => {
+  const { id, action } = req.params;
+  const auth = req.headers.authorization;
+
+  if (!auth) return res.status(401).json({ error: "No token provided" });
+
+  try {
+    const token = auth.split(" ")[1];
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = payload.id;
+
+    const userRes = await pool.query("SELECT role FROM users WHERE id = $1", [
+      userId,
+    ]);
+    if (userRes.rows.length === 0 || userRes.rows[0].role !== "admin") {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    if (action !== "accept" && action !== "reject") {
+      return res.status(400).json({ error: "Invalid action" });
+    }
+
+    const update = await pool.query(
+      `UPDATE suggested_itineraries SET status = $1 WHERE id = $2 RETURNING *`,
+      [action === "accept" ? "accepted" : "rejected", id]
+    );
+
+    if (update.rowCount === 0) {
+      return res.status(404).json({ error: "Request not found" });
+    }
+
+    if (action === "accept") {
+      // 1. Luăm datele propunerii
+      const suggestionRes = await pool.query(
+        `SELECT * FROM suggested_itineraries WHERE id = $1`,
+        [id]
+      );
+      if (suggestionRes.rowCount === 0)
+        return res.status(404).json({ error: "Suggested itinerary not found" });
+
+      const suggestion = suggestionRes.rows[0];
+
+      // 2. Inserăm în itineraries
+      const insertItineraryRes = await pool.query(
+        `INSERT INTO itineraries 
+      (title, description, difficulty, duration_minutes, estimated_budget, theme, starting_time, starting_point, starting_lat, starting_lng, created_at)
+     VALUES
+      ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,  NOW())
+     RETURNING id`,
+        [
+          suggestion.title,
+          suggestion.description,
+          suggestion.difficulty,
+          suggestion.duration_minutes,
+          suggestion.estimated_budget,
+          suggestion.theme,
+          suggestion.starting_time,
+          suggestion.starting_point,
+          suggestion.starting_lat,
+          suggestion.starting_lng,
+        ]
+      );
+
+      const newItineraryId = insertItineraryRes.rows[0].id;
+
+      // 3. Luăm stopurile
+      const stopsRes = await pool.query(
+        `SELECT * FROM suggested_itinerary_places WHERE suggested_itinerary_id = $1 ORDER BY "order"`,
+        [id]
+      );
+
+      // 4. Inserăm stopurile în itinerary_places
+      for (const stop of stopsRes.rows) {
+        await pool.query(
+          `INSERT INTO itinerary_places 
+        (itinerary_id, place_id, note, time, instructions, "order")
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+          [
+            newItineraryId,
+            stop.place_id,
+            stop.note,
+            stop.time,
+            stop.instructions,
+            stop.order,
+          ]
+        );
+      }
+
+      // 5. Setăm statusul ca accepted
+      await pool.query(
+        `UPDATE suggested_itineraries SET status = 'accepted' WHERE id = $1`,
+        [id]
+      );
+
+      return res.json({
+        message: "Itinerary approved and added successfully.",
+      });
+    }
+
+    if (action === "reject") {
+      await pool.query(
+        `UPDATE suggested_itineraries SET status = 'rejected' WHERE id = $1`,
+        [id]
+      );
+      return res.json({ message: "Itinerary rejected successfully." });
+    }
+
+    res.json({ message: `Request ${action}ed successfully.` });
+  } catch (err) {
+    console.error("❌ Failed to update itinerary suggestion:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get("/suggested-itineraries/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const client = await pool.connect();
+
+    const itineraryRes = await client.query(
+      `SELECT * FROM suggested_itineraries WHERE id = $1`,
+      [id]
+    );
+
+    if (itineraryRes.rowCount === 0) {
+      return res.status(404).json({ error: "Not found" });
+    }
+
+    const itinerary = itineraryRes.rows[0];
+
+    const stopsRes = await client.query(
+      `SELECT
+         sip.place_id,
+         p.name,
+         p.address,
+         p.latitude,
+         p.longitude,
+         sip.note,
+         sip.time,
+         sip.instructions
+       FROM suggested_itinerary_places sip
+       JOIN places p ON sip.place_id = p.place_id
+       WHERE sip.suggested_itinerary_id = $1
+       ORDER BY sip."order"`,
+      [id]
+    );
+
+    itinerary.stops = stopsRes.rows;
+
+    res.json(itinerary);
+  } catch (err) {
+    console.error("❌ Error fetching suggested itinerary:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 app.listen(3000, () =>
   console.log("🟢 Server running at http://localhost:3000")
 );
