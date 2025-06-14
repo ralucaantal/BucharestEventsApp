@@ -18,7 +18,7 @@ const LocalActions: React.FC = () => {
     {
       title: "Propose an Itinerary 🗺️",
       image: require("../assets/images/proposeItinerary.png"),
-      //onPress: () => router.push("/suggestItinerary"),
+      onPress: () => router.push("/suggestItinerary"),
     },
     {
       title: "Propose a Local Tip 💡",
@@ -47,7 +47,7 @@ const LocalActions: React.FC = () => {
           <TouchableOpacity
             key={index}
             activeOpacity={0.8}
-            // onPress={action.onPress}
+            onPress={action.onPress}
             className="mr-5 items-center">
             <View className="w-[72px] h-[72px] rounded-2xl bg-gray-100 justify-center items-center mb-2 shadow-sm">
               <Image
