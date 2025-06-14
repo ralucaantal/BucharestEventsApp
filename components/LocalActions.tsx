@@ -17,12 +17,12 @@ const LocalActions: React.FC = () => {
   const localActionsData = [
     {
       title: "Propose an Itinerary 🗺️",
-      image: require("../assets/images/itineraries.png"),
+      image: require("../assets/images/proposeItinerary.png"),
       //onPress: () => router.push("/suggestItinerary"),
     },
     {
       title: "Propose a Local Tip 💡",
-      image: require("../assets/images/localtips.png"),
+      image: require("../assets/images/proposeLocalTips.png"),
       //onPress: () => router.push("/suggestTop"),
     },
   ];
