@@ -797,6 +797,39 @@ app.post("/favorites/check/places", async (req, res) => {
   }
 });
 
+app.get("/local-tips", async (req, res) => {
+  try {
+    const tipsResult = await pool.query(`
+      SELECT * FROM local_tips ORDER BY id DESC
+    `);
+
+    const tips = [];
+
+    for (const tip of tipsResult.rows) {
+      const itemsResult = await pool.query(
+        `
+        SELECT i.rank, i.comment, p.name, p.photo_url, p.place_id
+        FROM local_tip_items i
+        JOIN places p ON i.place_id = p.place_id
+        WHERE i.local_tip_id = $1
+        ORDER BY i.rank ASC
+      `,
+        [tip.id]
+      );
+
+      tips.push({
+        ...tip,
+        places: itemsResult.rows,
+      });
+    }
+
+    res.json(tips);
+  } catch (err) {
+    console.error("❌ Error fetching local tips:", err);
+    res.status(500).json({ error: "Failed to load local tips" });
+  }
+});
+
 app.listen(3000, () =>
   console.log("🟢 Server running at http://localhost:3000")
 );

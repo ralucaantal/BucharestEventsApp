@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
@@ -6,34 +6,39 @@ import {
   ScrollView,
   Image,
   Dimensions,
-} from 'react-native';
-import { useRouter } from 'expo-router';
+} from "react-native";
+import { useRouter } from "expo-router";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 const QuickActions: React.FC = () => {
   const router = useRouter();
 
   const quickActionsData = [
     {
-      title: 'Find Your Way 🗺️',
-      image: require('../assets/images/map.png'),
-      onPress: () => router.push('/map'),
+      title: "Find Your Way 🗺️",
+      image: require("../assets/images/map.png"),
+      onPress: () => router.push("/map"),
     },
     {
-      title: 'What’s Happening Today 🎉',
-      image: require('../assets/images/calendar.png'),
-      onPress: () => router.push('/calendar'),
+      title: "What’s Happening Today 🎉",
+      image: require("../assets/images/calendar.png"),
+      onPress: () => router.push("/calendar"),
     },
     {
-      title: 'Ask Your Guide 👀',
-      image: require('../assets/images/guide.png'),
-      onPress: () => router.push('/virtualGuide'),
+      title: "Ask Your Guide 👀",
+      image: require("../assets/images/guide.png"),
+      onPress: () => router.push("/virtualGuide"),
     },
     {
-      title: 'Need some plan suggestions? 🧠',
-      image: require('../assets/images/itineraries.png'),
-      onPress: () => router.push('/itineraries'),
+      title: "Need some plan suggestions? 🧠",
+      image: require("../assets/images/itineraries.png"),
+      onPress: () => router.push("/itineraries"),
+    },
+    {
+      title: "Discover Local Gems 💡",
+      image: require("../assets/images/localtips.png"),
+      onPress: () => router.push("/localTips"),
     },
   ];
 
@@ -43,8 +48,7 @@ const QuickActions: React.FC = () => {
       <View className="px-5 flex-row justify-between items-center mb-2">
         <Text
           className="font-bold text-gray-800"
-          style={{ fontSize: width * 0.045 }}
-        >
+          style={{ fontSize: width * 0.045 }}>
           Quick Actions
         </Text>
       </View>
@@ -53,15 +57,13 @@ const QuickActions: React.FC = () => {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 20 }}
-      >
+        contentContainerStyle={{ paddingHorizontal: 20 }}>
         {quickActionsData.map((action, index) => (
           <TouchableOpacity
             key={index}
             activeOpacity={0.8}
             onPress={action.onPress}
-            className="mr-5 items-center"
-          >
+            className="mr-5 items-center">
             <View className="w-[72px] h-[72px] rounded-2xl bg-gray-100 justify-center items-center mb-2 shadow-sm">
               <Image
                 source={action.image}
@@ -71,8 +73,7 @@ const QuickActions: React.FC = () => {
             </View>
             <Text
               className="text-center text-gray-700 font-medium text-xs w-[80px]"
-              numberOfLines={4}
-            >
+              numberOfLines={4}>
               {action.title}
             </Text>
           </TouchableOpacity>
