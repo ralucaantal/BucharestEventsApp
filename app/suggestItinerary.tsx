@@ -5,8 +5,6 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  ActivityIndicator,
-  Dimensions,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
@@ -15,8 +13,6 @@ import { Feather } from "@expo/vector-icons";
 import { theme } from "../theme";
 import { BASE_URL } from "../constants";
 import { useRouter } from "expo-router";
-
-const { width } = Dimensions.get("window");
 
 interface Place {
   name: string;
@@ -30,6 +26,8 @@ const SuggestItineraryScreen = () => {
   const [startingTime, setStartingTime] = useState("08:00");
   const [budget, setBudget] = useState("");
   const [duration, setDuration] = useState("");
+  const [themeValue, setThemeValue] = useState("");
+  const [tags, setTags] = useState("");
   const [showAddStopInput, setShowAddStopInput] = useState(false);
   const [stopSearch, setStopSearch] = useState("");
   const [allPlaces, setAllPlaces] = useState<Place[]>([]);
@@ -75,8 +73,7 @@ const SuggestItineraryScreen = () => {
   };
 
   const handleSubmit = async () => {
-    if (!title || !description || !startingTime || selectedStops.length === 0)
-      return;
+    if (!title || !description || !startingTime || selectedStops.length === 0) return;
     setLoading(true);
     try {
       await fetch(`${BASE_URL}/suggested-itineraries`, {
@@ -90,6 +87,8 @@ const SuggestItineraryScreen = () => {
           stops: selectedStops.map((p) => p.name),
           budget,
           duration,
+          theme: themeValue,
+          tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
         }),
       });
       router.back();
@@ -103,26 +102,25 @@ const SuggestItineraryScreen = () => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
-      style={{ flex: 1 }}>
-      <SafeAreaView className="flex-1 bg-white px-4">
+      style={{ flex: 1 }}
+    >
+      <SafeAreaView className="flex-1 bg-white px-3">
         <ScrollView
-          className="pb-20"
+          className="pb-20 px-4"
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ paddingBottom: 120 }}>
+          contentContainerStyle={{ paddingBottom: 120 }}
+        >
           <View className="flex-row items-center pt-5 pb-3">
             <TouchableOpacity
               onPress={() => router.back()}
-              className="p-2 rounded-full bg-gray-100 mr-3">
+              className="p-2 rounded-full bg-gray-100 mr-3"
+            >
               <Feather name="chevron-left" size={24} color="#1f2937" />
             </TouchableOpacity>
-            <Text className="text-2xl font-bold text-gray-800">
-              Suggest Itinerary
-            </Text>
+            <Text className="text-2xl font-bold text-gray-800">Suggest Itinerary</Text>
           </View>
 
-          <Text className="text-sm font-semibold text-gray-700 mt-4 mb-1">
-            Title
-          </Text>
+          <Text className="text-sm font-semibold text-gray-700 mt-4 mb-1">Title</Text>
           <TextInput
             className="bg-gray-100 rounded-full px-4 py-3 text-base text-gray-700"
             placeholder="Title..."
@@ -130,9 +128,7 @@ const SuggestItineraryScreen = () => {
             onChangeText={setTitle}
           />
 
-          <Text className="text-sm font-semibold text-gray-700 mt-4 mb-1">
-            Description
-          </Text>
+          <Text className="text-sm font-semibold text-gray-700 mt-4 mb-1">Description</Text>
           <TextInput
             className="bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-700"
             placeholder="Short description..."
@@ -141,61 +137,60 @@ const SuggestItineraryScreen = () => {
             multiline
           />
 
-          <Text className="text-sm font-semibold text-gray-700 mt-4 mb-2">
-            Difficulty
-          </Text>
+          <Text className="text-sm font-semibold text-gray-700 mt-4 mb-1">Theme</Text>
+          <TextInput
+            className="bg-gray-100 rounded-full px-4 py-3 text-base text-gray-700"
+            placeholder="e.g. Cultural, Romantic"
+            value={themeValue}
+            onChangeText={setThemeValue}
+          />
+
+          <Text className="text-sm font-semibold text-gray-700 mt-4 mb-1">Tags (comma-separated)</Text>
+          <TextInput
+            className="bg-gray-100 rounded-full px-4 py-3 text-base text-gray-700"
+            placeholder="e.g. park, museum, kids"
+            value={tags}
+            onChangeText={setTags}
+          />
+
+          <Text className="text-sm font-semibold text-gray-700 mt-4 mb-2">Difficulty</Text>
           <View className="flex-row gap-3 mb-4">
             {["easy", "moderate", "hard"].map((level) => (
               <TouchableOpacity
                 key={level}
                 onPress={() => setDifficulty(level)}
                 className="px-4 py-2 rounded-full border"
-                style={{
-                  backgroundColor:
-                    difficulty === level ? theme.buttons2 : "#f3f4f6",
-                }}>
-                <Text
-                  className={
-                    difficulty === level ? "text-white" : "text-gray-700"
-                  }>
+                style={{ backgroundColor: difficulty === level ? theme.buttons2 : "#f3f4f6" }}
+              >
+                <Text className={difficulty === level ? "text-white" : "text-gray-700"}>
                   {level}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
 
-          <Text className="text-sm font-semibold text-gray-700 mb-2">
-            Starting Time
-          </Text>
+          <Text className="text-sm font-semibold text-gray-700 mb-2">Starting Time</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             className="mb-4"
-            contentContainerStyle={{ gap: 12 }}>
+            contentContainerStyle={{ gap: 12 }}
+          >
             {hourOptions.map((option) => (
               <TouchableOpacity
                 key={option}
                 onPress={() => setStartingTime(option)}
                 className="w-20 py-2 rounded-full border items-center justify-center"
-                style={{
-                  backgroundColor:
-                    startingTime === option ? theme.buttons2 : undefined,
-                }}>
-                <Text
-                  className={
-                    startingTime === option
-                      ? "text-white font-bold"
-                      : "text-gray-700"
-                  }>
+                style={{ backgroundColor: startingTime === option ? theme.buttons2 : undefined }}
+              >
+                <Text className={startingTime === option ? "text-white font-bold" : "text-gray-700"}>
                   {option}
                 </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
 
-          <Text className="text-sm font-semibold text-gray-700 mt-4 mb-1">
-            Approximate Budget (RON)
-          </Text>
+          <Text className="text-sm font-semibold text-gray-700 mt-4 mb-1">Approximate Budget (RON)</Text>
           <TextInput
             className="bg-gray-100 rounded-full px-4 py-3 text-base text-gray-700"
             placeholder="e.g. 100"
@@ -204,9 +199,7 @@ const SuggestItineraryScreen = () => {
             keyboardType="numeric"
           />
 
-          <Text className="text-sm font-semibold text-gray-700 mt-4 mb-1">
-            Estimated Duration (hours)
-          </Text>
+          <Text className="text-sm font-semibold text-gray-700 mt-4 mb-1">Estimated Duration (hours)</Text>
           <TextInput
             className="bg-gray-100 rounded-full px-4 py-3 text-base text-gray-700"
             placeholder="e.g. 3"
@@ -215,13 +208,12 @@ const SuggestItineraryScreen = () => {
             keyboardType="numeric"
           />
 
-          <Text className="text-sm font-semibold text-gray-700 mt-6 mb-1">
-            Stops
-          </Text>
+          <Text className="text-sm font-semibold text-gray-700 mt-6 mb-1">Stops</Text>
           {selectedStops.map((place, idx) => (
             <View
               key={place.name}
-              className="flex-row items-center justify-between mb-2 bg-gray-100 rounded-full px-4 py-2">
+              className="flex-row items-center justify-between mb-2 bg-gray-100 rounded-full px-4 py-2"
+            >
               <Text className="text-gray-800 flex-1">
                 {idx + 1}. {place.name}
               </Text>
@@ -242,7 +234,8 @@ const SuggestItineraryScreen = () => {
           {!showAddStopInput && (
             <TouchableOpacity
               onPress={() => setShowAddStopInput(true)}
-              className="flex-row gap-2 items-center mt-2 mb-4">
+              className="flex-row gap-2 items-center mt-2 mb-4"
+            >
               <Feather name="plus-circle" size={24} color={theme.buttons2} />
               <Text className="text-base font-semibold text-gray-800">
                 Add Stop
@@ -271,7 +264,8 @@ const SuggestItineraryScreen = () => {
                 <TouchableOpacity
                   key={place.name}
                   onPress={() => handleAddStop(place)}
-                  className="py-2 px-4 border-b border-gray-200">
+                  className="py-2 px-4 border-b border-gray-200"
+                >
                   <Text className="text-gray-800">{place.name}</Text>
                 </TouchableOpacity>
               ))}
@@ -282,7 +276,8 @@ const SuggestItineraryScreen = () => {
             onPress={handleSubmit}
             disabled={loading}
             className="mt-8 py-3 px-6 rounded-full self-center"
-            style={{ backgroundColor: theme.buttons1 }}>
+            style={{ backgroundColor: theme.buttons1 }}
+          >
             <Text className="text-white font-bold text-base">
               {loading ? "Submitting..." : "Submit Itinerary"}
             </Text>
