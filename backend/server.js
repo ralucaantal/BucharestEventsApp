@@ -1009,6 +1009,94 @@ app.get("/admin/users", async (req, res) => {
   }
 });
 
+app.get("/requests/local-account", async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: "No token provided" });
+
+  try {
+    const token = auth.split(" ")[1];
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (payload.role !== "admin") {
+      return res.status(403).json({ error: "Forbidden: not admin" });
+    }
+
+    const result = await pool.query(`
+      SELECT r.id, r.reason, r.status, r.created_at,
+             u.username, u.email
+      FROM local_account_requests r
+      JOIN users u ON r.user_id = u.id
+      ORDER BY r.created_at DESC
+    `);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Error fetching requests:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.post("/requests/local-account/:id/accept", async (req, res) => {
+  const { id } = req.params;
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: "No token provided" });
+
+  try {
+    const token = auth.split(" ")[1];
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    if (payload.role !== "admin")
+      return res.status(403).json({ error: "Forbidden: not admin" });
+
+    const result = await pool.query(
+      `UPDATE local_account_requests
+       SET status = 'accepted'
+       WHERE id = $1
+       RETURNING user_id`,
+      [id]
+    );
+
+    if (result.rowCount === 0)
+      return res.status(404).json({ error: "Request not found" });
+
+    const userId = result.rows[0].user_id;
+
+    await pool.query(`UPDATE users SET role = 'local' WHERE id = $1`, [userId]);
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("❌ Accept error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.post("/requests/local-account/:id/reject", async (req, res) => {
+  const { id } = req.params;
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: "No token provided" });
+
+  try {
+    const token = auth.split(" ")[1];
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    if (payload.role !== "admin")
+      return res.status(403).json({ error: "Forbidden: not admin" });
+
+    const result = await pool.query(
+      `UPDATE local_account_requests
+       SET status = 'rejected'
+       WHERE id = $1`,
+      [id]
+    );
+
+    if (result.rowCount === 0)
+      return res.status(404).json({ error: "Request not found" });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("❌ Reject error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 app.listen(3000, () =>
   console.log("🟢 Server running at http://localhost:3000")
 );
