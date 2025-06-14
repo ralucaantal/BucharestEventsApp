@@ -29,8 +29,12 @@ const LoginScreen: React.FC = () => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        className="flex-1">
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled">
           <View className="flex-1">
             {/* Background */}
             <Image
@@ -49,8 +53,7 @@ const LoginScreen: React.FC = () => {
             <SafeAreaView className="absolute top-0 left-0 right-0 z-20 px-4 pt-2">
               <TouchableOpacity
                 onPress={() => router.back()}
-                className="bg-white/50 p-2 rounded-full self-start"
-              >
+                className="bg-white/50 p-2 rounded-full self-start">
                 <Feather name="chevron-left" size={28} color="white" />
               </TouchableOpacity>
             </SafeAreaView>
@@ -64,14 +67,12 @@ const LoginScreen: React.FC = () => {
                   style={{
                     fontSize: width * 0.08,
                     lineHeight: width * 0.095,
-                  }}
-                >
+                  }}>
                   Welcome back 👋
                 </Text>
                 <Text
                   className="text-gray-200 font-medium text-center mt-1"
-                  style={{ fontSize: width * 0.042 }}
-                >
+                  style={{ fontSize: width * 0.042 }}>
                   Sign in to explore Bucharest
                 </Text>
               </View>
@@ -96,9 +97,12 @@ const LoginScreen: React.FC = () => {
                   />
                   <TouchableOpacity
                     onPress={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-3"
-                  >
-                    <Feather name={showPassword ? "eye-off" : "eye"} size={22} color="#e5e7eb" />
+                    className="absolute right-4 top-3">
+                    <Feather
+                      name={showPassword ? "eye-off" : "eye"}
+                      size={22}
+                      color="#e5e7eb"
+                    />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -114,11 +118,21 @@ const LoginScreen: React.FC = () => {
                     });
 
                     const data = await response.json();
-
                     if (response.ok) {
                       await AsyncStorage.setItem("token", data.token);
-                      await AsyncStorage.setItem("user", JSON.stringify(data.user));
-                      router.push("/home");
+                      await AsyncStorage.setItem(
+                        "user",
+                        JSON.stringify(data.user)
+                      );
+
+                      const user = data.user; // ⬅️ adaugă această linie
+                      console.log("👤 USER ROLE:", user.role);
+
+                      if (user.role === "admin") {
+                        router.replace("/admin"); // redirecționare admin
+                      } else {
+                        router.replace("/home"); // pagina standard pentru utilizatori
+                      }
                     } else {
                       alert(data.error || "Autentificare eșuată");
                     }
@@ -133,12 +147,10 @@ const LoginScreen: React.FC = () => {
                   shadowOpacity: 0.2,
                   shadowRadius: 4,
                   elevation: 5,
-                }}
-              >
+                }}>
                 <Text
                   className="text-center font-bold"
-                  style={{ color: "#0284c7", fontSize: width * 0.052 }}
-                >
+                  style={{ color: "#0284c7", fontSize: width * 0.052 }}>
                   Log In
                 </Text>
               </TouchableOpacity>

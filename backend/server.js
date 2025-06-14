@@ -154,6 +154,29 @@ cron.schedule("0 6 * * *", async () => {
   await fetchAndSaveWeather();
 });
 
+app.get("/init-admin", async (req, res) => {
+  try {
+    const hashed = await bcrypt.hash("admin", 10);
+
+    const result = await pool.query(
+      `INSERT INTO users (username, email, password, role)
+       VALUES ('admin', 'admin@admin.com', $1, 'admin')
+       ON CONFLICT (email) DO NOTHING`,
+      [hashed]
+    );
+
+    if (result.rowCount > 0) {
+      console.log("✅ Admin user inserted");
+      res.json({ success: true, message: "Admin user created." });
+    } else {
+      res.json({ success: false, message: "Admin already exists." });
+    }
+  } catch (err) {
+    console.error("❌ Error inserting admin:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 app.get("/import-events", async (req, res) => {
   try {
     await importEvents();
@@ -959,6 +982,29 @@ app.get("/requests/mine", async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error("❌ Error verifying token or fetching data:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get("/admin/users", async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: "No token provided" });
+
+  try {
+    const token = auth.split(" ")[1];
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (payload.role !== "admin") {
+      return res.status(403).json({ error: "Forbidden: not admin" });
+    }
+
+    const result = await pool.query(
+      `SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC`
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Error fetching users:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });
