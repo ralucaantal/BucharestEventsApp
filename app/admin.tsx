@@ -6,6 +6,7 @@ import {
   ScrollView,
   ActivityIndicator,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -44,6 +45,12 @@ const AdminDashboardScreen = () => {
     }
   };
 
+  const logout = async () => {
+    await AsyncStorage.removeItem("token");
+    await AsyncStorage.removeItem("user");
+    router.replace("/login");
+  };
+
   useEffect(() => {
     const checkRole = async () => {
       const userData = await AsyncStorage.getItem("user");
@@ -51,14 +58,11 @@ const AdminDashboardScreen = () => {
 
       if (!user || user.role !== "admin") {
         alert("Access denied");
-        router.replace("/"); // redirect to home
+        router.replace("/");
       }
     };
 
     checkRole();
-  }, []);
-
-  useEffect(() => {
     fetchUsers();
   }, []);
 
@@ -72,21 +76,32 @@ const AdminDashboardScreen = () => {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView contentContainerStyle={{ padding: 20 }}>
-        <View className="flex-row items-center mb-4">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="p-2 bg-gray-100 rounded-full mr-3">
-            <Feather name="chevron-left" size={24} color="#1f2937" />
-          </TouchableOpacity>
+        {/* Top Bar */}
+        <View className="flex-row justify-between items-center mb-6">
           <Text className="text-2xl font-bold text-gray-800">
             Admin Dashboard
           </Text>
+          <TouchableOpacity
+            onPress={() =>
+              Alert.alert("Logout", "Are you sure you want to log out?", [
+                { text: "Cancel", style: "cancel" },
+                { text: "Logout", onPress: logout },
+              ])
+            }
+            className="p-2 bg-red-100 rounded-full">
+            <Feather name="log-out" size={20} color="#dc2626" />
+          </TouchableOpacity>
         </View>
+
+        {/* Section 1: Users */}
+        <Text className="text-xl font-semibold text-gray-800 mb-2">
+          Bucharestly Users:
+        </Text>
 
         {loading ? (
           <ActivityIndicator size="large" className="mt-10" />
         ) : users.length === 0 ? (
-          <Text className="text-gray-500 text-center mt-10">
+          <Text className="text-gray-500 text-center mt-4">
             No users found.
           </Text>
         ) : (
@@ -105,6 +120,16 @@ const AdminDashboardScreen = () => {
             </View>
           ))
         )}
+
+        {/* Section 2: Requests (static for now) */}
+        <Text className="text-xl font-semibold text-gray-800 mt-6 mb-2">
+          Requests for becoming local:
+        </Text>
+
+        {/* Placeholder */}
+        <Text className="text-gray-500 italic">
+          (Coming soon: integrate with `/requests/local-account` endpoint)
+        </Text>
       </ScrollView>
     </SafeAreaView>
   );

@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+"use client";
+import React from "react";
 import {
   View,
   Text,
@@ -15,16 +16,25 @@ const { width, height } = Dimensions.get("window");
 
 export default function Index() {
   const router = useRouter();
-  const [hasToken, setHasToken] = useState(false);
 
-  useEffect(() => {
-    const checkToken = async () => {
-      const token = await AsyncStorage.getItem("token");
-      setHasToken(!!token);
-    };
+  const handlePress = async () => {
+    const token = await AsyncStorage.getItem("token");
+    const userData = await AsyncStorage.getItem("user");
 
-    checkToken();
-  }, []);
+    if (!token || !userData) {
+      return router.push("/login");
+    }
+
+    const user = JSON.parse(userData);
+
+    if (user.role === "admin") {
+      await AsyncStorage.removeItem("token");
+      await AsyncStorage.removeItem("user");
+      return router.replace("/login");
+    }
+
+    router.push("/home");
+  };
 
   return (
     <View className="flex-1">
@@ -78,7 +88,7 @@ export default function Index() {
         </View>
 
         <TouchableOpacity
-          onPress={() => router.push(hasToken ? "/home" : "/login")}
+          onPress={handlePress}
           className="bg-white self-center py-4 px-12 rounded-full shadow-md"
           style={{
             shadowColor: "#000",
@@ -92,7 +102,7 @@ export default function Index() {
             className="font-bold"
             style={{
               fontSize: width * 0.052,
-              color: theme.text,
+              color: theme.buttons1,
             }}
           >
             Let&apos;s go!
