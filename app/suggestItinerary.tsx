@@ -44,15 +44,18 @@ const SuggestItineraryScreen = () => {
   const [selectedStops, setSelectedStops] = useState<Place[]>([]);
   const [loading, setLoading] = useState(false);
   const [stopNotes, setStopNotes] = useState<{ [key: string]: string }>({});
+  const [mapRegion, setMapRegion] = useState<any>(null);
 
-  const initialRegion = useMemo(() => {
-    if (selectedStops.length === 0) return null;
-    return {
-      latitude: selectedStops[0].latitude,
-      longitude: selectedStops[0].longitude,
-      latitudeDelta: 0.05,
-      longitudeDelta: 0.05,
-    };
+  useEffect(() => {
+    if (selectedStops.length > 0) {
+      const last = selectedStops[selectedStops.length - 1];
+      setMapRegion({
+        latitude: last.latitude,
+        longitude: last.longitude,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+      });
+    }
   }, [selectedStops]);
 
   const handleNoteChange = (placeId: string, text: string) => {
@@ -368,7 +371,7 @@ const SuggestItineraryScreen = () => {
             </TouchableOpacity>
           )}
 
-          {initialRegion && (
+          {mapRegion && (
             <View
               style={{
                 height: height * 0.35,
@@ -381,7 +384,8 @@ const SuggestItineraryScreen = () => {
                 style={{ flex: 1 }}
                 provider="google"
                 customMapStyle={mapStyle}
-                initialRegion={initialRegion}>
+                initialRegion={mapRegion}
+                onRegionChangeComplete={(region) => setMapRegion(region)}>
                 {selectedStops.map((place, index) => (
                   <Marker
                     key={`${place.place_id}-${index}`}
