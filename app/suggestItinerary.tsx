@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -43,6 +43,21 @@ const SuggestItineraryScreen = () => {
   const [filteredPlaces, setFilteredPlaces] = useState<Place[]>([]);
   const [selectedStops, setSelectedStops] = useState<Place[]>([]);
   const [loading, setLoading] = useState(false);
+  const [stopNotes, setStopNotes] = useState<{ [key: string]: string }>({});
+
+  const initialRegion = useMemo(() => {
+    if (selectedStops.length === 0) return null;
+    return {
+      latitude: selectedStops[0].latitude,
+      longitude: selectedStops[0].longitude,
+      latitudeDelta: 0.05,
+      longitudeDelta: 0.05,
+    };
+  }, [selectedStops]);
+
+  const handleNoteChange = (placeId: string, text: string) => {
+    setStopNotes((prev) => ({ ...prev, [placeId]: text }));
+  };
 
   useEffect(() => {
     fetch(`${BASE_URL}/places`)
@@ -89,18 +104,19 @@ const SuggestItineraryScreen = () => {
 
     setLoading(true);
     try {
-      const stopsToSend = selectedStops.map((p) => ({
+      const stopsToSend = selectedStops.map((p, idx) => ({
         place_id: p.place_id,
+        order: idx + 1,
         time: null,
-        note: null,
+        note: stopNotes[p.place_id] || null,
         instructions: null,
       }));
 
-      await fetch(`${BASE_URL}/suggested-itineraries`, {
+      const res = await fetch(`${BASE_URL}/suggested-itineraries`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${await AsyncStorage.getItem("token")}`, // ✅ Dacă ai JWT
+          Authorization: `Bearer ${await AsyncStorage.getItem("token")}`,
         },
         body: JSON.stringify({
           title,
@@ -120,6 +136,17 @@ const SuggestItineraryScreen = () => {
           stops: stopsToSend,
         }),
       });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        console.log("✅ Suggestion submitted:", data);
+        alert("Itinerary submitted successfully!");
+        router.back(); // sau navighează unde vrei tu
+      } else {
+        console.error("❌ Submission failed:", data);
+        alert("Error: " + (data?.error || "Failed to submit"));
+      }
     } catch (err) {
       console.error("❌ Submit error:", err);
     } finally {
@@ -268,24 +295,34 @@ const SuggestItineraryScreen = () => {
           <Text className="text-sm font-semibold text-gray-700 mt-6 mb-1">
             Stops
           </Text>
+
           {selectedStops.map((place, idx) => (
             <View
-              key={`${place.name}-${idx}`}
-              className="flex-row items-center justify-between mb-2 bg-gray-100 rounded-full px-4 py-2">
-              <Text className="text-gray-800 flex-1">
-                {idx + 1}. {place.name}
-              </Text>
-              <View className="flex-row gap-2">
-                <TouchableOpacity onPress={() => moveStop(idx, -1)}>
-                  <Feather name="arrow-up" size={18} color="gray" />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => moveStop(idx, 1)}>
-                  <Feather name="arrow-down" size={18} color="gray" />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleRemoveStop(place)}>
-                  <Feather name="x" size={18} color="gray" />
-                </TouchableOpacity>
+              key={`${place.place_id}-${idx}`}
+              className="mb-4 bg-gray-100 rounded-xl px-4 py-3">
+              <View className="flex-row items-center justify-between mb-1">
+                <Text className="text-gray-800 font-semibold">
+                  {idx + 1}. {place.name}
+                </Text>
+                <View className="flex-row gap-2">
+                  <TouchableOpacity onPress={() => moveStop(idx, -1)}>
+                    <Feather name="arrow-up" size={18} color="gray" />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => moveStop(idx, 1)}>
+                    <Feather name="arrow-down" size={18} color="gray" />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleRemoveStop(place)}>
+                    <Feather name="x" size={18} color="gray" />
+                  </TouchableOpacity>
+                </View>
               </View>
+              <TextInput
+                placeholder="Optional note for this stop..."
+                value={stopNotes[place.place_id] || ""}
+                onChangeText={(text) => handleNoteChange(place.place_id, text)}
+                className="bg-white rounded-md px-3 py-2 mt-1 text-sm text-gray-700"
+                multiline
+              />
             </View>
           ))}
 
@@ -331,7 +368,7 @@ const SuggestItineraryScreen = () => {
             </TouchableOpacity>
           )}
 
-          {selectedStops.length > 0 && (
+          {initialRegion && (
             <View
               style={{
                 height: height * 0.35,
@@ -344,15 +381,10 @@ const SuggestItineraryScreen = () => {
                 style={{ flex: 1 }}
                 provider="google"
                 customMapStyle={mapStyle}
-                initialRegion={{
-                  latitude: selectedStops[0].latitude,
-                  longitude: selectedStops[0].longitude,
-                  latitudeDelta: 0.05,
-                  longitudeDelta: 0.05,
-                }}>
+                initialRegion={initialRegion}>
                 {selectedStops.map((place, index) => (
                   <Marker
-                    key={`${place.name}-${index}`}
+                    key={`${place.place_id}-${index}`}
                     coordinate={{
                       latitude: place.latitude,
                       longitude: place.longitude,

@@ -1127,6 +1127,28 @@ app.delete("/requests/:id", async (req, res) => {
 });
 
 app.post("/suggested-itineraries", async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: "No token provided" });
+
+  let token = null;
+  let payload = null;
+
+  try {
+    token = auth.split(" ")[1];
+    payload = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("🔐 JWT payload:", payload);
+  } catch (err) {
+    console.error("❌ Invalid JWT:", err.message);
+    return res.status(401).json({ error: "Invalid or expired token" });
+  }
+
+  if (!payload || !payload.id) {
+    console.error("❌ JWT does not contain 'id'");
+    return res.status(401).json({ error: "Invalid token payload" });
+  }
+
+  const userId = payload.id;
+
   const {
     title,
     description,
@@ -1139,38 +1161,39 @@ app.post("/suggested-itineraries", async (req, res) => {
     stops,
   } = req.body;
 
-  const firstStop = stops[0] || {};
-  const starting_point = firstStop.name; // sau ia dintr-un câmp stop.name dacă există
-  const latitude = firstStop.latitude;
-  const longitude = firstStop.longitude;
-
-  console.log(req.body);
+  console.log("✅ BODY primit:", req.body);
 
   if (
     !title ||
     !description ||
     !startingTime ||
-    !starting_point ||
-    !latitude ||
-    !longitude ||
     !Array.isArray(stops) ||
     stops.length === 0
   ) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
+  const starting_point = req.body.starting_point || stops[0]?.name;
+  const latitude = req.body.starting_lat || stops[0]?.latitude;
+  const longitude = req.body.starting_lng || stops[0]?.longitude;
+
+  if (!starting_point || !latitude || !longitude) {
+    return res
+      .status(400)
+      .json({ error: "Missing coordinates or name for first stop" });
+  }
+
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
 
-    // 1. Insert into suggested_itineraries
     const suggestionResult = await client.query(
       `INSERT INTO suggested_itineraries (
-     title, description, difficulty, starting_time,
-     estimated_budget, duration_minutes, theme, tags,
-     starting_point, starting_lat, starting_lng, status, user_id
-   ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'pending',$12)
-   RETURNING id`,
+         title, description, difficulty, starting_time,
+         estimated_budget, duration_minutes, theme, tags,
+         starting_point, starting_lat, starting_lng, status, user_id
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'pending',$12)
+       RETURNING id`,
       [
         title,
         description,
@@ -1183,13 +1206,13 @@ app.post("/suggested-itineraries", async (req, res) => {
         starting_point,
         latitude,
         longitude,
-        userId, // <--- AICI
+        userId,
       ]
     );
 
     const suggestionId = suggestionResult.rows[0].id;
+    console.log("📌 Suggestion inserat cu ID:", suggestionId);
 
-    // 2. Insert stops into suggested_itinerary_places
     for (let i = 0; i < stops.length; i++) {
       const stop = stops[i];
       await client.query(
@@ -1212,7 +1235,10 @@ app.post("/suggested-itineraries", async (req, res) => {
   } catch (err) {
     await client.query("ROLLBACK");
     console.error("❌ Failed to insert suggestion:", err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({
+      error: "Internal server error",
+      details: err.message,
+    });
   } finally {
     client.release();
   }
