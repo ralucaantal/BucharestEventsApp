@@ -1495,6 +1495,55 @@ app.get("/suggested-itineraries/:id", async (req, res) => {
   }
 });
 
+app.post("/suggested-local-tips", async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: "No token provided" });
+
+  try {
+    const token = auth.split(" ")[1];
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = payload.id;
+
+    const { title, description, emoji, image_url, places } = req.body;
+
+    if (!title || !places || !Array.isArray(places) || places.length === 0) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+
+      const result = await client.query(
+        `INSERT INTO suggested_local_tips (title, description, emoji, image_url, user_id)
+         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+        [title, description || null, emoji || null, image_url || null, userId]
+      );
+
+      const tipId = result.rows[0].id;
+
+      for (const [index, item] of places.entries()) {
+        await client.query(
+          `INSERT INTO suggested_local_tip_items (suggested_local_tip_id, place_id, rank, comment)
+           VALUES ($1, $2, $3, $4)`,
+          [tipId, item.place_id, index + 1, item.comment || null]
+        );
+      }
+
+      await client.query("COMMIT");
+      res.status(201).json({ success: true, id: tipId });
+    } catch (err) {
+      await client.query("ROLLBACK");
+      console.error("❌ DB error:", err);
+      res.status(500).json({ error: "Failed to insert suggestion" });
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    res.status(401).json({ error: "Invalid or expired token" });
+  }
+});
+
 app.listen(3000, () =>
   console.log("🟢 Server running at http://localhost:3000")
 );
