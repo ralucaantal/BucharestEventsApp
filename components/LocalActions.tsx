@@ -23,7 +23,7 @@ const LocalActions: React.FC = () => {
     {
       title: "Propose a Local Tip 💡",
       image: require("../assets/images/proposeLocalTips.png"),
-      //onPress: () => router.push("/suggestTop"),
+      onPress: () => router.push("/suggestLocalTip"),
     },
   ];
 
