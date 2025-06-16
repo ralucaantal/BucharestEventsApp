@@ -20,7 +20,6 @@ const SuggestedItineraryDetailScreen = () => {
   const router = useRouter();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const isFinalized = data.status === "accepted" || data.status === "rejected";
 
   const fetchDetails = async () => {
     try {
@@ -98,9 +97,13 @@ const SuggestedItineraryDetailScreen = () => {
 
   if (!data) return null;
 
+  const isFinalized = data.status === "accepted" || data.status === "rejected";
+
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 10 }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 10 }}>
         {/* HEADER */}
         <View className="flex-row items-center pt-5 pb-3 px-4">
           <TouchableOpacity
