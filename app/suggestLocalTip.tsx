@@ -59,19 +59,25 @@ export default function SuggestLocalTipScreen() {
     const target = index + direction;
     if (target < 0 || target >= places.length) return;
     const newPlaces = [...places];
-    [newPlaces[index], newPlaces[target]] = [newPlaces[target], newPlaces[index]];
+    [newPlaces[index], newPlaces[target]] = [
+      newPlaces[target],
+      newPlaces[index],
+    ];
     setPlaces(newPlaces);
   };
 
   const handleSubmit = async () => {
     if (!title || !emoji || !description || places.length === 0) {
-      Alert.alert("Error", "Please complete all fields and add at least one place.");
+      Alert.alert(
+        "Error",
+        "Please complete all fields and add at least one place."
+      );
       return;
     }
 
     const token = await AsyncStorage.getItem("token");
 
-    const res = await fetch(`${BASE_URL}/suggest-local-tip`, {
+    const res = await fetch(`${BASE_URL}/suggested-local-tips`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -81,9 +87,9 @@ export default function SuggestLocalTipScreen() {
         title,
         emoji,
         description,
-        items: places.map((p, i) => ({
+        image_url: null,
+        places: places.map((p, i) => ({
           place_id: p.place_id,
-          rank: i + 1,
           comment: p.comment,
         })),
       }),
@@ -119,7 +125,9 @@ export default function SuggestLocalTipScreen() {
             </Text>
           </View>
 
-          <Text className="text-sm font-semibold text-gray-700 mb-1">Title</Text>
+          <Text className="text-sm font-semibold text-gray-700 mb-1">
+            Title
+          </Text>
           <TextInput
             className="bg-gray-100 rounded-xl px-4 py-3 mb-3"
             placeholder="Ex: Best Ice Cream Spots 🍦"
@@ -127,7 +135,9 @@ export default function SuggestLocalTipScreen() {
             onChangeText={setTitle}
           />
 
-          <Text className="text-sm font-semibold text-gray-700 mb-1">Emoji</Text>
+          <Text className="text-sm font-semibold text-gray-700 mb-1">
+            Emoji
+          </Text>
           <TextInput
             className="bg-gray-100 rounded-xl px-4 py-3 mb-3"
             placeholder="Ex: 😋"
@@ -135,12 +145,15 @@ export default function SuggestLocalTipScreen() {
             onChangeText={setEmoji}
           />
 
-          <Text className="text-sm font-semibold text-gray-700 mb-1">Description</Text>
+          <Text className="text-sm font-semibold text-gray-700 mb-1">
+            Description
+          </Text>
           <TextInput
-            className="bg-gray-100 rounded-xl px-4 py-3 mb-4"
+            className="bg-gray-100 rounded-xl px-4 py-3 mb-3"
             placeholder="Write a short description..."
             value={description}
             onChangeText={setDescription}
+            placeholderTextColor="#6b7280"
             multiline
           />
 
@@ -163,7 +176,8 @@ export default function SuggestLocalTipScreen() {
                   <TouchableOpacity onPress={() => movePlace(index, 1)}>
                     <Feather name="arrow-down" size={18} color="gray" />
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => handleRemovePlace(p.place_id)}>
+                  <TouchableOpacity
+                    onPress={() => handleRemovePlace(p.place_id)}>
                     <Feather name="x" size={18} color="gray" />
                   </TouchableOpacity>
                 </View>
@@ -174,7 +188,9 @@ export default function SuggestLocalTipScreen() {
                 onChangeText={(text) =>
                   setPlaces((prev) =>
                     prev.map((item) =>
-                      item.place_id === p.place_id ? { ...item, comment: text } : item
+                      item.place_id === p.place_id
+                        ? { ...item, comment: text }
+                        : item
                     )
                   )
                 }
