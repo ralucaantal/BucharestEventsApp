@@ -66,6 +66,8 @@ const AdminDashboardScreen = () => {
     LocalTipSuggestion[]
   >([]);
   const [showAllLocalTips, setShowAllLocalTips] = useState(false);
+  const [expandedTipId, setExpandedTipId] = useState<number | null>(null);
+  const [tipPlaces, setTipPlaces] = useState<Record<number, any[]>>({});
 
   const fetchUsers = async () => {
     try {
@@ -191,7 +193,7 @@ const AdminDashboardScreen = () => {
     try {
       const token = await AsyncStorage.getItem("token");
       const res = await fetch(
-        `${BASE_URL}/requests/local-tip-suggestions/${id}/${action}`,
+        `${BASE_URL}/requests/local-tips/${id}/${action}`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -204,6 +206,26 @@ const AdminDashboardScreen = () => {
     } catch (err) {
       console.error(`❌ Failed to ${action} local tip:`, err);
       alert(`Failed to ${action} local tip`);
+    }
+  };
+
+  const toggleTipDetails = async (tipId: number) => {
+    if (expandedTipId === tipId) {
+      setExpandedTipId(null); // închide
+    } else {
+      setExpandedTipId(tipId); // deschide
+      if (!tipPlaces[tipId]) {
+        try {
+          const token = await AsyncStorage.getItem("token");
+          const res = await fetch(`${BASE_URL}/suggested-local-tips/${tipId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+          setTipPlaces((prev) => ({ ...prev, [tipId]: data.places || [] }));
+        } catch (err) {
+          console.error("❌ Failed to fetch places for tip:", err);
+        }
+      }
     }
   };
 
@@ -450,9 +472,23 @@ const AdminDashboardScreen = () => {
                 <View
                   key={tip.id}
                   className="bg-gray-100 p-4 rounded-xl mb-4 shadow-sm">
-                  <Text className="text-lg font-semibold text-gray-800">
-                    {tip.title}
-                  </Text>
+                  <View className="flex-row justify-between items-center">
+                    <Text className="text-lg font-semibold text-gray-800">
+                      {tip.title}
+                    </Text>
+                    <TouchableOpacity onPress={() => toggleTipDetails(tip.id)}>
+                      <Feather
+                        name={
+                          expandedTipId === tip.id
+                            ? "chevron-up"
+                            : "chevron-down"
+                        }
+                        size={20}
+                        color="gray"
+                      />
+                    </TouchableOpacity>
+                  </View>
+
                   <Text className="text-gray-600 mt-1">Email: {tip.email}</Text>
                   <Text className="text-gray-500 mt-1 italic">
                     Suggested by: {tip.username}
@@ -490,6 +526,23 @@ const AdminDashboardScreen = () => {
                       Status:{" "}
                       {tip.status.charAt(0).toUpperCase() + tip.status.slice(1)}
                     </Text>
+                  )}
+                  {expandedTipId === tip.id && (
+                    <View className="mt-3 bg-white border rounded-lg p-3 space-y-2">
+                      {Array.isArray(tipPlaces[tip.id]) &&
+                      tipPlaces[tip.id].length > 0 ? (
+                        tipPlaces[tip.id].map((place, idx) => (
+                          <Text key={idx} className="text-gray-700">
+                            {idx + 1}. {place.name}{" "}
+                            {place.comment ? `– ${place.comment}` : ""}
+                          </Text>
+                        ))
+                      ) : (
+                        <Text className="text-gray-500 italic">
+                          No places found.
+                        </Text>
+                      )}
+                    </View>
                   )}
                 </View>
               ))}

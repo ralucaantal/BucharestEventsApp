@@ -1596,6 +1596,27 @@ app.post("/requests/local-tips/:id/:action", async (req, res) => {
   }
 });
 
+app.get("/suggested-local-tips/:id", async (req, res) => {
+  const id = req.params.id;
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT p.name, i.comment
+       FROM suggested_local_tip_items i
+       JOIN places p ON p.place_id = i.place_id
+       WHERE i.suggested_local_tip_id = $1
+       ORDER BY i.rank`,
+      [id]
+    );
+    res.json({ places: result.rows });
+  } catch (err) {
+    console.error("❌ Failed to fetch places:", err);
+    res.status(500).json({ error: "Failed to fetch places" });
+  } finally {
+    client.release();
+  }
+});
+
 app.listen(3000, () =>
   console.log("🟢 Server running at http://localhost:3000")
 );
