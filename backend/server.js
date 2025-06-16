@@ -1097,6 +1097,69 @@ app.post("/requests/local-account/:id/reject", async (req, res) => {
   }
 });
 
+app.patch("/requests/itinerary-suggestions/:id/edit", async (req, res) => {
+  const { id } = req.params;
+  const auth = req.headers.authorization;
+
+  if (!auth) return res.status(401).json({ error: "No token provided" });
+
+  try {
+    const token = auth.split(" ")[1];
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = payload.id;
+
+    const userRes = await pool.query("SELECT role FROM users WHERE id = $1", [
+      userId,
+    ]);
+    if (userRes.rows[0]?.role !== "admin") {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const {
+      title,
+      description,
+      difficulty,
+      starting_time,
+      estimated_budget,
+      duration_minutes,
+      theme,
+      tags,
+      cover_image,
+    } = req.body;
+
+    await pool.query(
+      `UPDATE suggested_itineraries SET 
+        title = $1,
+        description = $2,
+        difficulty = $3,
+        starting_time = $4,
+        estimated_budget = $5,
+        duration_minutes = $6,
+        theme = $7,
+        tags = $8,
+        image_url = $9
+       WHERE id = $10`,
+      [
+        title,
+        description,
+        difficulty,
+        starting_time,
+        estimated_budget,
+        duration_minutes,
+        theme,
+        tags,
+        cover_image,
+        id,
+      ]
+    );
+
+    res.json({ success: true, message: "Itinerary updated" });
+  } catch (err) {
+    console.error("❌ Edit error:", err);
+    res.status(500).json({ error: "Failed to update itinerary" });
+  }
+});
+
 app.delete("/requests/:id", async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: "No token provided" });

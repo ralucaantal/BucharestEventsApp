@@ -6,20 +6,37 @@ import {
   ScrollView,
   ActivityIndicator,
   TouchableOpacity,
+  TextInput,
   Alert,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Feather } from "@expo/vector-icons";
+import MapView, { Marker, Polyline } from "react-native-maps";
 import { BASE_URL } from "../constants";
 import { theme } from "../theme";
+import mapStyle from "../assets/mapStyle.json";
+
+const { height } = Dimensions.get("window");
 
 const SuggestedItineraryDetailScreen = () => {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [editable, setEditable] = useState<any>({
+    title: "",
+    description: "",
+    difficulty: "",
+    startingTime: "",
+    budget: "",
+    duration: "",
+    theme: "",
+    tags: "",
+    coverImage: "",
+  });
 
   const fetchDetails = async () => {
     try {
@@ -31,6 +48,17 @@ const SuggestedItineraryDetailScreen = () => {
       if (!res.ok) throw new Error("Failed to fetch details");
       const json = await res.json();
       setData(json);
+      setEditable({
+        title: json.title,
+        description: json.description,
+        difficulty: json.difficulty,
+        startingTime: json.starting_time?.slice(0, 5),
+        budget: json.estimated_budget,
+        duration: Math.round(json.duration_minutes / 60).toString(),
+        theme: json.theme,
+        tags: json.tags?.join(", ") || "",
+        coverImage: json.image_url || "",
+      });
     } catch (err) {
       console.error("❌ Error loading details:", err);
       Alert.alert("Error", "Failed to load itinerary details.");
@@ -96,15 +124,13 @@ const SuggestedItineraryDetailScreen = () => {
   }
 
   if (!data) return null;
-
   const isFinalized = data.status === "accepted" || data.status === "rejected";
 
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 10 }}>
-        {/* HEADER */}
+        contentContainerStyle={{ paddingBottom: 40 }}>
         <View className="flex-row items-center pt-5 pb-3 px-4">
           <TouchableOpacity
             onPress={() => router.back()}
@@ -116,80 +142,103 @@ const SuggestedItineraryDetailScreen = () => {
           </Text>
         </View>
 
-        {/* CARD DETALII */}
-        <View className="bg-white mx-4 mt-2 mb-4 p-4 rounded-2xl border border-gray-200 shadow-sm space-y-2">
-          <Text className="text-xl font-bold text-gray-800">{data.title}</Text>
-          <Text className="text-sm text-gray-600">{data.description}</Text>
-
-          <Text className="text-xs text-gray-500">
-            🎯 Theme: {data.theme} · 🧭 Level: {data.difficulty} · 💰 Budget:{" "}
-            {data.estimated_budget}
-          </Text>
-          <Text className="text-xs text-gray-500">
-            ⏱ Duration: {Math.round(data.duration_minutes / 60)}h · 🕒 Start:{" "}
-            {data.starting_time?.slice(0, 5)}
-          </Text>
-          <Text className="text-xs text-gray-500">
-            🏷 Tags: {data.tags?.join(", ") || "—"}
-          </Text>
+        <View className="px-6 pt-6 pb-10 space-y-6">
+          {["title", "description", "theme", "tags", "budget", "duration", "difficulty", "startingTime", "coverImage"].map((field) => (
+            <View key={field}>
+              <Text className="text-sm font-semibold text-gray-600 capitalize"
+              style={{marginBottom: 10}}>
+                {field.replace(/([A-Z])/g, " $1")}
+              </Text>
+              <TextInput
+                className="bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800"
+                placeholder={field}
+                value={editable[field]}
+                style={{marginBottom: 10}}
+                onChangeText={(val) =>
+                  setEditable((prev: any) => ({ ...prev, [field]: val }))
+                }
+              />
+            </View>
+          ))}
         </View>
 
-        {/* STOPS */}
-        <View className="px-5">
-          <Text className="font-semibold text-base text-gray-700 mb-2">
-            📍 Itinerary Stops
-          </Text>
-          <View className="space-y-8 pb-10">
-            {data.stops?.map((stop: any, idx: number) => (
-              <View
-                key={idx}
-                className="border border-gray-200 bg-gray-50 rounded-xl px-5 py-4 shadow-sm">
-                <Text className="font-semibold text-sm text-gray-800">
-                  {`${idx + 1}. `}
-                  {stop.time ? `🕒 ${stop.time} · ` : ""}
-                  {stop.name || `Place ID: ${stop.place_id}`}
-                </Text>
-                {stop.note && (
-                  <Text className="text-sm text-gray-500 mt-0.5">
-                    📝 {stop.note}
-                  </Text>
-                )}
-                {stop.instructions && (
-                  <Text className="text-sm text-gray-500 mt-0.5">
-                    📌 {stop.instructions}
-                  </Text>
-                )}
-              </View>
-            ))}
+        {/* MAPA */}
+        {data.stops?.length > 0 && (
+          <View
+            style={{
+              height: height * 0.35,
+              marginTop: 30,
+              borderRadius: 20,
+              overflow: "hidden",
+            }}
+            className="mx-5">
+            <MapView
+              style={{ flex: 1 }}
+              provider="google"
+              customMapStyle={mapStyle}
+              initialRegion={{
+                latitude: data.stops[0].latitude,
+                longitude: data.stops[0].longitude,
+                latitudeDelta: 0.05,
+                longitudeDelta: 0.05,
+              }}>
+              {data.stops.map((place: any, index: number) => (
+                <Marker
+                  key={`${place.place_id}-${index}`}
+                  coordinate={{
+                    latitude: place.latitude,
+                    longitude: place.longitude,
+                  }}>
+                  <View
+                    style={{
+                      backgroundColor: theme.buttons2,
+                      borderRadius: 20,
+                      paddingHorizontal: 8,
+                      paddingVertical: 4,
+                      borderWidth: 1,
+                      borderColor: "white",
+                    }}>
+                    <Text style={{ color: "white", fontWeight: "bold" }}>
+                      {index + 1}
+                    </Text>
+                  </View>
+                </Marker>
+              ))}
+              <Polyline
+                coordinates={data.stops.map((p: any) => ({
+                  latitude: p.latitude,
+                  longitude: p.longitude,
+                }))}
+                strokeWidth={2}
+                strokeColors={["#ff5d9e"]}
+              />
+            </MapView>
           </View>
-        </View>
+        )}
 
-        {/* ACTION BUTTONS */}
+        {/* ACTIONS */}
         {!isFinalized && (
-          <View className="px-5 mb-10 flex-row justify-center">
+          <View className="px-5 mt-10 flex-row justify-center">
             <TouchableOpacity
               onPress={handleApprove}
               style={{
                 backgroundColor: theme.buttons2,
-                paddingVertical: 8,
-                paddingHorizontal: 20,
+                paddingVertical: 10,
+                paddingHorizontal: 24,
                 borderRadius: 999,
                 marginRight: 12,
-                elevation: 3,
               }}>
               <Text className="text-white font-semibold text-base">
                 ✅ Approve
               </Text>
             </TouchableOpacity>
-
             <TouchableOpacity
               onPress={handleReject}
               style={{
                 backgroundColor: theme.buttons1,
-                paddingVertical: 8,
-                paddingHorizontal: 20,
+                paddingVertical: 10,
+                paddingHorizontal: 24,
                 borderRadius: 999,
-                elevation: 3,
               }}>
               <Text className="text-white font-semibold text-base">
                 ❌ Reject
