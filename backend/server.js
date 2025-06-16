@@ -1544,6 +1544,58 @@ app.post("/suggested-local-tips", async (req, res) => {
   }
 });
 
+app.get("/requests/local-tips", async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: "No token provided" });
+
+  try {
+    const token = auth.split(" ")[1];
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    if (payload.role !== "admin")
+      return res.status(403).json({ error: "Forbidden" });
+
+    const result = await pool.query(`
+      SELECT slt.id, slt.title, slt.status, slt.created_at, u.username, u.email
+      FROM suggested_local_tips slt
+      JOIN users u ON slt.user_id = u.id
+      ORDER BY slt.created_at DESC
+    `);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Failed to fetch local tip suggestions:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.post("/requests/local-tips/:id/:action", async (req, res) => {
+  const { id, action } = req.params;
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: "No token provided" });
+
+  try {
+    const token = auth.split(" ")[1];
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    if (payload.role !== "admin")
+      return res.status(403).json({ error: "Forbidden" });
+
+    if (!["accept", "reject"].includes(action)) {
+      return res.status(400).json({ error: "Invalid action" });
+    }
+
+    const status = action === "accept" ? "accepted" : "rejected";
+    await pool.query(
+      "UPDATE suggested_local_tips SET status = $1 WHERE id = $2",
+      [status, id]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(`❌ Failed to ${action} local tip:`, err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 app.listen(3000, () =>
   console.log("🟢 Server running at http://localhost:3000")
 );

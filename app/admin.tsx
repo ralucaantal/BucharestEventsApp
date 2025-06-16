@@ -42,6 +42,15 @@ type SuggestionRequest = {
   created_at: string;
 };
 
+type LocalTipSuggestion = {
+  id: number;
+  username: string;
+  email: string;
+  title: string;
+  status: string;
+  created_at: string;
+};
+
 const AdminDashboardScreen = () => {
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
@@ -53,6 +62,10 @@ const AdminDashboardScreen = () => {
     SuggestionRequest[]
   >([]);
   const [showAllSuggestions, setShowAllSuggestions] = useState(false);
+  const [localTipSuggestions, setLocalTipSuggestions] = useState<
+    LocalTipSuggestion[]
+  >([]);
+  const [showAllLocalTips, setShowAllLocalTips] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -102,6 +115,21 @@ const AdminDashboardScreen = () => {
     }
   };
 
+  const fetchLocalTipSuggestions = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const res = await fetch(`${BASE_URL}/requests/local-tips`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch local tip suggestions");
+      const data = await res.json();
+      setLocalTipSuggestions(data);
+    } catch (err) {
+      console.error("❌ Failed to fetch local tip suggestions:", err);
+    }
+  };
+
   const logout = async () => {
     await AsyncStorage.removeItem("token");
     await AsyncStorage.removeItem("user");
@@ -123,6 +151,7 @@ const AdminDashboardScreen = () => {
     fetchUsers();
     fetchLocalRequests();
     fetchItineraryRequests();
+    fetchLocalTipSuggestions();
   }, []);
 
   const formatDate = (iso: string) =>
@@ -152,6 +181,29 @@ const AdminDashboardScreen = () => {
     } catch (err) {
       console.error(`❌ Failed to ${action} request:`, err);
       alert(`Failed to ${action} request`);
+    }
+  };
+
+  const handleLocalTipDecision = async (
+    id: number,
+    action: "accept" | "reject"
+  ) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const res = await fetch(
+        `${BASE_URL}/requests/local-tip-suggestions/${id}/${action}`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (!res.ok) throw new Error("Failed to update local tip");
+
+      setLocalTipSuggestions((prev) => prev.filter((tip) => tip.id !== id));
+    } catch (err) {
+      console.error(`❌ Failed to ${action} local tip:`, err);
+      alert(`Failed to ${action} local tip`);
     }
   };
 
@@ -324,11 +376,11 @@ const AdminDashboardScreen = () => {
                     </Text>
                     <TouchableOpacity
                       onPress={() =>
-                    router.push({
-                      pathname: "/suggestedItinerary",
-                      params: { id: req.id },
-                    })
-                  }
+                        router.push({
+                          pathname: "/suggestedItinerary",
+                          params: { id: req.id },
+                        })
+                      }
                       className="px-3 py-1.5 rounded-lg"
                       style={{ backgroundColor: theme.buttons2 }}>
                       <Text className="text-white font-medium text-sm">
@@ -376,6 +428,87 @@ const AdminDashboardScreen = () => {
                     color: showAllSuggestions ? "#b91c1c" : "#ffffff",
                   }}>
                   {showAllSuggestions ? "Cancel" : "See more"}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </>
+        )}
+
+        <Text className="text-xl font-semibold text-gray-800 mt-6 mb-2">
+          Local Tip Suggestions:
+        </Text>
+
+        {localTipSuggestions.length === 0 ? (
+          <Text className="text-gray-500 italic mb-4">
+            No suggestions found.
+          </Text>
+        ) : (
+          <>
+            {localTipSuggestions
+              .slice(0, showAllLocalTips ? localTipSuggestions.length : 2)
+              .map((tip) => (
+                <View
+                  key={tip.id}
+                  className="bg-gray-100 p-4 rounded-xl mb-4 shadow-sm">
+                  <Text className="text-lg font-semibold text-gray-800">
+                    {tip.title}
+                  </Text>
+                  <Text className="text-gray-600 mt-1">Email: {tip.email}</Text>
+                  <Text className="text-gray-500 mt-1 italic">
+                    Suggested by: {tip.username}
+                  </Text>
+                  <Text className="text-gray-400 mt-1">
+                    Sent: {formatDate(tip.created_at)}
+                  </Text>
+
+                  {tip.status === "pending" ? (
+                    <View className="flex-row mt-3 space-x-5">
+                      <TouchableOpacity
+                        className="bg-green-100 px-3 py-1 rounded-lg"
+                        onPress={() =>
+                          handleLocalTipDecision(tip.id, "accept")
+                        }>
+                        <Text className="text-green-700 font-medium">
+                          Accept
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        className="bg-red-100 px-3 py-1 rounded-lg"
+                        onPress={() =>
+                          handleLocalTipDecision(tip.id, "reject")
+                        }>
+                        <Text className="text-red-700 font-medium">Reject</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <Text
+                      className={`mt-3 font-semibold ${
+                        tip.status === "accepted"
+                          ? "text-green-700"
+                          : "text-red-700"
+                      }`}>
+                      Status:{" "}
+                      {tip.status.charAt(0).toUpperCase() + tip.status.slice(1)}
+                    </Text>
+                  )}
+                </View>
+              ))}
+
+            {localTipSuggestions.length > 2 && (
+              <TouchableOpacity
+                onPress={() => setShowAllLocalTips(!showAllLocalTips)}
+                className="self-center py-1 px-2 rounded-lg mb-4"
+                style={{
+                  backgroundColor: showAllLocalTips
+                    ? "#fee2e2"
+                    : theme.buttons1,
+                }}>
+                <Text
+                  className="font-medium"
+                  style={{
+                    color: showAllLocalTips ? "#b91c1c" : "#ffffff",
+                  }}>
+                  {showAllLocalTips ? "Cancel" : "See more"}
                 </Text>
               </TouchableOpacity>
             )}
