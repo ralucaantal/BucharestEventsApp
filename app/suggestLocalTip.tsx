@@ -131,6 +131,7 @@ export default function SuggestLocalTipScreen() {
           <TextInput
             className="bg-gray-100 rounded-xl px-4 py-3 mb-3"
             placeholder="Ex: Best Ice Cream Spots 🍦"
+            placeholderTextColor="#6b7280"
             value={title}
             onChangeText={setTitle}
           />
@@ -141,6 +142,7 @@ export default function SuggestLocalTipScreen() {
           <TextInput
             className="bg-gray-100 rounded-xl px-4 py-3 mb-3"
             placeholder="Ex: 😋"
+            placeholderTextColor="#6b7280"
             value={emoji}
             onChangeText={setEmoji}
           />
