@@ -105,7 +105,7 @@ const MyRequestsScreen: React.FC = () => {
                   Status:{" "}
                   <Text
                     className={`font-medium ${
-                      request.status === "approved"
+                      request.status === "accepted"
                         ? "text-green-600"
                         : request.status === "pending"
                         ? "text-yellow-600"

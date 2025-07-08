@@ -3,7 +3,7 @@ export const sortCategoryData = ['All', 'Popular', 'Recommended', 'Favorites'];
 //telefon sap
 //export const BASE_URL = 'http://172.20.10.5:3000';
 //bucuresti
-export const BASE_URL = 'http://192.168.1.129:3000';
+export const BASE_URL = 'http://192.168.1.132:3000';
 //bacau
 //  export const BASE_URL = 'http://192.168.1.168:3000';
 
