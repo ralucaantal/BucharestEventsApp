@@ -128,6 +128,76 @@ const ItineraryQuestionnaireScreen: React.FC = () => {
     );
   };
 
+  const getInstructionIcon = (text: string) => {
+    const lower = text.toLowerCase();
+    if (lower.includes("walk")) return "🚶";
+    if (lower.includes("metro") || lower.includes("subway")) return "🚇";
+    if (lower.includes("bus")) return "🚌";
+    if (lower.includes("tram")) return "🚋";
+    if (lower.includes("taxi") || lower.includes("uber")) return "🚖";
+    if (lower.includes("bike")) return "🚲";
+    return "🧭";
+  };
+
+  const renderItinerary = () => {
+    if (!response) return null;
+
+    const lines = response
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => l !== "");
+
+    let stepNumber = 1;
+    const blocks = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i].trim();
+
+      // Elimină prefixe gen "1.", "-", "•"
+      line = line.replace(/^(\d+[\.:]|\-|\•)?\s*/, "");
+
+      // Detectează instrucțiunile oriunde în text
+      const isInstruction = line.toLowerCase().startsWith("instructions:");
+
+      if (isInstruction) {
+        const instruction = line.replace(/^instructions:\s*/i, "");
+
+        blocks.push(
+          <View
+            key={`inst-${i}`}
+            className="px-4 py-2 rounded-md mb-3 mx-2 border-l-4"
+            style={{
+              backgroundColor: `${theme.buttons1}20`, // 12% opacitate pentru un fundal deschis
+              borderColor: theme.buttons1,
+            }}>
+            <Text style={{ color: theme.buttons1, fontWeight: "600" }}>
+              {getInstructionIcon(instruction)} {instruction}
+            </Text>
+          </View>
+        );
+      } else {
+        blocks.push(
+          <View
+            key={`step-${i}`}
+            className="flex-row bg-gray-100 px-4 py-3 rounded-2xl mb-4 items-start">
+            <View
+              className="w-7 h-7 rounded-full mr-4 items-center justify-center"
+              style={{ backgroundColor: theme.buttons2 }}>
+              <Text className="text-white font-bold text-sm">{stepNumber}</Text>
+            </View>
+            <Text className="flex-1 text-base text-gray-800 leading-6">
+              {line}
+            </Text>
+          </View>
+        );
+
+        stepNumber++;
+      }
+    }
+
+    return blocks;
+  };
+
   const handleGenerate = async () => {
     if (!departureHour || interests.length === 0) {
       Alert.alert(
@@ -167,8 +237,8 @@ const ItineraryQuestionnaireScreen: React.FC = () => {
     }. Additional notes: ${extraNotes || "none"}.
 
 Return the itinerary as a numbered list. For each step:
-- On the first line, specify the exact time and the activity, using real, specific places in Bucharest (e.g., '08:30 - Visit Carol Park', '09:15 - Have coffee at Beans & Dots')
-- If needed, on the second line, add: 'Instructions: ...' to describe how to get to the next location
+- If needed, first write a line starting with 'Instructions: ...' to describe how to get to this location from the previous one
+- Then on the next line, specify the exact time and the activity, using real, specific places in Bucharest (e.g., '08:30 - Visit Carol Park', '09:15 - Have coffee at Beans & Dots')
 
 Avoid vague phrases like 'a park', 'a museum', 'a café' — always name a specific place in Bucharest.
 Make sure the schedule is realistic and fits strictly between ${departureHour} and ${returnHour}.
@@ -526,53 +596,7 @@ ${transportNote}`;
                   ? "Your Last Itinerary:"
                   : "Your Suggested Itinerary:"}
               </Text>
-
-              {(() => {
-                const lines = response
-                  .split("\n")
-                  .map((line) => line.trim())
-                  .filter((line) => line.length > 0);
-
-                let stepNumber = 1;
-
-                return lines.map((step, index) => {
-                  const isInstruction = step
-                    .toLowerCase()
-                    .startsWith("instructions:");
-
-                  if (isInstruction) {
-                    return (
-                      <View
-                        key={`inst-${index}`}
-                        className="ml-10 -mt-2 mb-2 pr-4">
-                        <Text className="text-gray-500 italic text-base leading-5">
-                          ⏱️ {step.replace(/^instructions:\s*/i, "")}
-                        </Text>
-                      </View>
-                    );
-                  }
-
-                  const currentStepNumber = stepNumber;
-                  stepNumber++;
-
-                  return (
-                    <View
-                      key={`main-${index}`}
-                      className="flex-row bg-gray-100 px-4 py-3 rounded-2xl mb-4 items-start">
-                      <View
-                        className="w-7 h-7 rounded-full mr-4 items-center justify-center"
-                        style={{ backgroundColor: theme.buttons2 }}>
-                        <Text className="text-white font-bold text-sm">
-                          {currentStepNumber}
-                        </Text>
-                      </View>
-                      <Text className="flex-1 text-base text-gray-700 leading-6">
-                        {step.replace(/^(\d+[\.:]|\-|\•)?\s*/, "")}
-                      </Text>
-                    </View>
-                  );
-                });
-              })()}
+              {renderItinerary()}
             </View>
           )}
         </ScrollView>
