@@ -41,25 +41,16 @@ const typeToCategoryMap: Record<string, { title: string; image: any }> = {
   beauty_salon: categoriesData[11],
 };
 
-function openNavigationApp(lat: number, lon: number, label: string) {
-  const iosUrl = `maps://?daddr=${lat},${lon}&dirflg=d`;
-  const androidUrl = `google.navigation:q=${lat},${lon}`;
-  const webUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}&travelmode=driving`;
+function openGoogleMapsPlaceByName(name: string, address: string) {
+  const query = `${name}, ${address}, București`;
+  const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    query
+  )}`;
 
-  const url = Platform.OS === "ios" ? iosUrl : androidUrl;
-
-  Linking.canOpenURL(url)
-    .then((supported) => {
-      if (supported) {
-        Linking.openURL(url);
-      } else {
-        return Linking.openURL(webUrl);
-      }
-    })
-    .catch((err) => {
-      console.error("Navigation error:", err);
-      Alert.alert("Error", "Could not open navigation app.");
-    });
+  Linking.openURL(url).catch((err) => {
+    console.error("❌ Failed to open Google Maps:", err);
+    Alert.alert("Error", "Could not open Google Maps.");
+  });
 }
 
 const normalize = (text: string): string =>
@@ -281,11 +272,7 @@ export default function MapScreen() {
                       {
                         text: "Navigate",
                         onPress: () =>
-                          openNavigationApp(
-                            item.latitude,
-                            item.longitude,
-                            item.name
-                          ),
+                          openGoogleMapsPlaceByName(item.name, item.address),
                       },
                     ]);
                   }}>
@@ -333,11 +320,7 @@ export default function MapScreen() {
 
                     <TouchableOpacity
                       onPress={() =>
-                        openNavigationApp(
-                          item.latitude,
-                          item.longitude,
-                          item.name
-                        )
+                        openGoogleMapsPlaceByName(item.name, item.address)
                       }
                       className="mt-3 bg-[#4b0082] px-4 py-2 rounded">
                       <Text className="text-white text-center font-semibold">
@@ -459,7 +442,6 @@ export default function MapScreen() {
                           latitudeDelta: 0.01,
                           longitudeDelta: 0.01,
                         });
-
                       }}
                       className="px-4 py-3 border-b border-gray-100">
                       <Text className="text-gray-800 font-medium">
