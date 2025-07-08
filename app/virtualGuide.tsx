@@ -240,6 +240,9 @@ ${transportNote}`;
               className="w-48 h-48 rounded-full border-2 border-gray-200"
               resizeMode="contain"
             />
+            <Text className="mt-3 px-6 text-center text-lg font-semibold text-gray-800">
+              Hi, I’m Pathi! 🫶 What kind of adventure are you up for today? 👀
+            </Text>
           </View>
 
           <Text className="font-semibold text-gray-700 mb-2">
