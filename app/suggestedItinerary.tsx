@@ -35,7 +35,7 @@ const SuggestedItineraryDetailScreen = () => {
     duration: "",
     theme: "",
     tags: "",
-    coverImage: "",
+    imageURL: "",
   });
 
   const fetchDetails = async () => {
@@ -57,7 +57,7 @@ const SuggestedItineraryDetailScreen = () => {
         duration: Math.round(json.duration_minutes / 60).toString(),
         theme: json.theme,
         tags: json.tags?.join(", ") || "",
-        coverImage: json.image_url || "",
+        imageURL: json.image_url || "",
       });
     } catch (err) {
       console.error("❌ Error loading details:", err);
@@ -68,6 +68,24 @@ const SuggestedItineraryDetailScreen = () => {
   };
 
   const handleApprove = async () => {
+    const imageUrl = editable.imageURL?.trim();
+
+    if (!imageUrl) {
+      Alert.alert("Missing Image", "Please add an image URL before approving.");
+      return;
+    }
+
+    const isValidUrl = /^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)$/i.test(
+      imageUrl
+    );
+    if (!isValidUrl) {
+      Alert.alert(
+        "Invalid URL",
+        "Please provide a valid image URL ending in .jpg, .png, etc."
+      );
+      return;
+    }
+
     try {
       const token = await AsyncStorage.getItem("token");
       const res = await fetch(
@@ -76,7 +94,11 @@ const SuggestedItineraryDetailScreen = () => {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
+          body: JSON.stringify({
+            imageUrl: imageUrl,
+          }),
         }
       );
 
@@ -143,17 +165,28 @@ const SuggestedItineraryDetailScreen = () => {
         </View>
 
         <View className="px-6 pt-6 pb-10 space-y-6">
-          {["title", "description", "theme", "tags", "budget", "duration", "difficulty", "startingTime", "coverImage"].map((field) => (
+          {[
+            "title",
+            "description",
+            "theme",
+            "tags",
+            "budget",
+            "duration",
+            "difficulty",
+            "startingTime",
+            "imageURL",
+          ].map((field) => (
             <View key={field}>
-              <Text className="text-sm font-semibold text-gray-600 capitalize"
-              style={{marginBottom: 10}}>
+              <Text
+                className="text-sm font-semibold text-gray-600 capitalize"
+                style={{ marginBottom: 10 }}>
                 {field.replace(/([A-Z])/g, " $1")}
               </Text>
               <TextInput
                 className="bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800"
                 placeholder={field}
                 value={editable[field]}
-                style={{marginBottom: 10}}
+                style={{ marginBottom: 10 }}
                 onChangeText={(val) =>
                   setEditable((prev: any) => ({ ...prev, [field]: val }))
                 }

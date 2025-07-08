@@ -1369,6 +1369,14 @@ app.post("/requests/itinerary-suggestions/:id/:action", async (req, res) => {
 
     if (action === "accept") {
       // 1. Luăm datele propunerii
+      const { imageUrl } = req.body;
+      console.log("📸 Image URL primit:", imageUrl);
+      if (!imageUrl) {
+        return res
+          .status(400)
+          .json({ error: "Image URL is required for approval." });
+      }
+
       const suggestionRes = await pool.query(
         `SELECT * FROM suggested_itineraries WHERE id = $1`,
         [id]
@@ -1381,9 +1389,9 @@ app.post("/requests/itinerary-suggestions/:id/:action", async (req, res) => {
       // 2. Inserăm în itineraries
       const insertItineraryRes = await pool.query(
         `INSERT INTO itineraries 
-      (title, description, difficulty, duration_minutes, estimated_budget, theme, starting_time, starting_point, starting_lat, starting_lng, created_at)
+      (title, description, difficulty, duration_minutes, estimated_budget, theme, starting_time, starting_point, starting_lat, starting_lng, image_url, created_at)
      VALUES
-      ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,  NOW())
+      ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
      RETURNING id`,
         [
           suggestion.title,
@@ -1396,6 +1404,7 @@ app.post("/requests/itinerary-suggestions/:id/:action", async (req, res) => {
           suggestion.starting_point,
           suggestion.starting_lat,
           suggestion.starting_lng,
+          imageUrl
         ]
       );
 
