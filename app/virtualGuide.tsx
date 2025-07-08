@@ -60,15 +60,27 @@ const ItineraryQuestionnaireScreen: React.FC = () => {
   });
 
   const handleClear = () => {
-    setDepartureHour("08:00");
-    setReturnHour("13:00");
-    setMeals({ breakfast: false, lunch: false, dinner: false });
-    setCustomObjectives([]);
-    setCustomInput("");
-    setStartingLocation("");
-    setExtraNotes("");
-    setInterests([]);
-    setFilteredPlaces([]);
+    Alert.alert("Clear form", "Are you sure you want to reset all fields?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Clear",
+        style: "destructive",
+        onPress: () => {
+          setDepartureHour("08:00");
+          setReturnHour("13:00");
+          setMeals({ breakfast: false, lunch: false, dinner: false });
+          setCustomObjectives([]);
+          setCustomInput("");
+          setStartingLocation("");
+          setExtraNotes("");
+          setInterests([]);
+          setFilteredPlaces([]);
+        },
+      },
+    ]);
   };
 
   useEffect(() => {
@@ -122,6 +134,11 @@ const ItineraryQuestionnaireScreen: React.FC = () => {
         "Missing info",
         "Please fill at least departure time and activities."
       );
+      return;
+    }
+
+    if (departureHour >= returnHour) {
+      Alert.alert("Invalid hours", "Return time must be after departure time.");
       return;
     }
 
