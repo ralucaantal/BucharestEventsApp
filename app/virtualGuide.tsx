@@ -230,11 +230,15 @@ const ItineraryQuestionnaireScreen: React.FC = () => {
       startingLocation || "an unknown location"
     } and must return to the same location by ${returnHour}. The itinerary must fit strictly within this time interval. They want to do: ${interests.join(
       ", "
-    )}, prefer to eat: ${
-      mealList || "no specific meals"
-    }. Weather is: ${weather}. Must include: ${
+    )}. **IMPORTANT: The user selected only the following meals: ${
+      mealList || "no meals"
+    }. You must include exactly these meals and no others. Do NOT suggest additional meals or snacks.** Weather is: ${weather}. Must include: ${
       customObjectives.join(", ") || "no specific places"
     }. Additional notes: ${extraNotes || "none"}.
+
+➡️ The first step of the itinerary must clearly indicate the departure from "${
+      startingLocation || "an unknown location"
+    }" at ${departureHour}. It must describe what the user should do immediately after leaving this area (e.g., walk to X or take Y transport). Do not skip this step.
 
 Return the itinerary as a numbered list. For each step:
 - If needed, first write a line starting with 'Instructions: ...' to describe how to get to this location from the previous one
